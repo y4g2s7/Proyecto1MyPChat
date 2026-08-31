@@ -1,0 +1,4 @@
+int main(void){
+  print("Cargando...");
+  return 0;
+}
