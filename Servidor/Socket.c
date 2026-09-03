@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-
+#include "IndicacionesServidor.h"
 int main() {
     int servidorFd = socket(AF_INET,SOCK_STREAM,0);
 
@@ -23,14 +23,20 @@ int main() {
     printf("Cliente conectado.\n");
     
     char buffer[256];
-    ssize_t bytes_leidos = read(clienteFd, buffer, sizeof(buffer));
-    write(clienteFd, buffer, bytes_leidos);
-    char buf[]={"hola cliente"};
-    write(clienteFd, buf,strlen(buf));
-       
-    
+    ssize_t bytesLeidos = read(clienteFd, buffer, sizeof(buffer));
+    if (bytesLeidos > 0){
+      char *respuesta=indicaciones(buffer);
+      
+      if(respuesta!=NULL){
+	write(clienteFd, respuesta, strlen(respuesta));
+      } else{
+	char *respuestaPorSiAcaso = "No enviaste ni hola ni adios";
+	write(clienteFd, respuestaPorSiAcaso, strlen(respuestaPorSiAcaso));
+      }
+    }
     printf("Cliente se desconectó.\n");
     close(clienteFd);
     close(servidorFd);
     return 0;
 }
+

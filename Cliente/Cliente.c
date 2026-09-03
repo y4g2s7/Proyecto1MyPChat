@@ -11,10 +11,10 @@ int main() {
     direccion.sin_family = AF_INET;
     direccion.sin_port = htons(9000);
     inet_pton(AF_INET, "127.0.0.1", &direccion.sin_addr);
-
+    
     connect(socket_fd, (struct sockaddr *)&direccion, sizeof(direccion));
 
-    char *mensaje = "hola servidor";
+    char *mensaje = "juan";
     write(socket_fd, mensaje, strlen(mensaje));
 
     /* char *m = "TEST"; */
