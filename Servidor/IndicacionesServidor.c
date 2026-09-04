@@ -5,6 +5,8 @@ char *indicaciones(char *mensaje){
     return "bienvenido";
   } else if(strcmp(mensaje,"adios")==0){
     return "vuelve pronto";
+  } else if(strcmp(mensaje,"Mensaje invalido")==0){
+    return "No te entendi";
   }
   return NULL;
 }

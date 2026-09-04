@@ -1,5 +1,5 @@
 project('Chat', 'c')
 executable('Servidor', 'Servidor/Socket.c','Servidor/IndicacionesServidor.c')
-executable('Cliente', 'Cliente/Cliente.c')		  
+executable('Cliente', 'Cliente/Cliente.c','Cliente/Hilos.c','Cliente/IndicacionesCliente.c')		  
 TestEjemplo = executable('TestEjemplo', 'Test/TestEjemplo.c')
 test('Prueba de ejemplo', TestEjemplo)
