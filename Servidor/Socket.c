@@ -27,10 +27,7 @@ int main() {
     while ((bytesLeidos = read(clienteFd, buffer, sizeof(buffer)))>0){
       buffer[bytesLeidos]='\0';
       char *respuesta=indicaciones(buffer);
-      
-      
       write(clienteFd, respuesta, strlen(respuesta));
-      
     }
     printf("Cliente se desconectó.\n");
     close(clienteFd);
