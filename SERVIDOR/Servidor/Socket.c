@@ -25,8 +25,12 @@ int main() {
     char buffer[256]={0};
     ssize_t bytesLeidos;
     while ((bytesLeidos = read(clienteFd, buffer, sizeof(buffer)))>0){
-      buffer[bytesLeidos]='\0';
+      buffer[bytesLeidos]='\0';      
       char *respuesta=indicaciones(buffer);
+      if(respuesta == NULL){
+	printf("Error no puedo captar el mensaje");
+	continue;
+      }
       write(clienteFd, respuesta, strlen(respuesta));
     }
     printf("Cliente se desconectó.\n");

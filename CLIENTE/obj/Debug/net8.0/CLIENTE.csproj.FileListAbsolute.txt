@@ -1,0 +1,15 @@
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/bin/Debug/net8.0/CLIENTE
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/bin/Debug/net8.0/CLIENTE.deps.json
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/bin/Debug/net8.0/CLIENTE.runtimeconfig.json
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/bin/Debug/net8.0/CLIENTE.dll
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/bin/Debug/net8.0/CLIENTE.pdb
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/obj/Debug/net8.0/CLIENTE.GeneratedMSBuildEditorConfig.editorconfig
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/obj/Debug/net8.0/CLIENTE.AssemblyInfoInputs.cache
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/obj/Debug/net8.0/CLIENTE.AssemblyInfo.cs
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/obj/Debug/net8.0/CLIENTE.csproj.CoreCompileInputs.cache
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/obj/Debug/net8.0/CLIENTE.sourcelink.json
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/obj/Debug/net8.0/CLIENTE.dll
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/obj/Debug/net8.0/refint/CLIENTE.dll
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/obj/Debug/net8.0/CLIENTE.pdb
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/obj/Debug/net8.0/CLIENTE.genruntimeconfig.cache
+/home/y4g2s7/Documents/ProyectosMyP/Proyecto1MyPChat/CLIENTE/obj/Debug/net8.0/ref/CLIENTE.dll
