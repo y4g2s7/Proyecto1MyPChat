@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "IndicacionesServidor.h"
-int main() {
+void runServidor() {
     int servidorFd = socket(AF_INET,SOCK_STREAM,0);
 
     int booleano=1;
@@ -36,6 +36,5 @@ int main() {
     printf("Cliente se desconectó.\n");
     close(clienteFd);
     close(servidorFd);
-    return 0;
 }
 
