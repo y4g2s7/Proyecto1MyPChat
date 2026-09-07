@@ -1,21 +1,18 @@
 name: Tests
-
 on: [push, pull_request]
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Instalar Meson y Ninja
         run: sudo apt-get update && sudo apt-get install -y meson ninja-build
-
       - name: Configurar build
         run: meson setup build
-
+        working-directory: SERVIDOR
       - name: Compilar
         run: meson compile -C build
-
+        working-directory: SERVIDOR
       - name: Correr tests
         run: meson test -C build
+        working-directory: SERVIDOR

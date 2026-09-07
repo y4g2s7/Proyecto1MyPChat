@@ -1,4 +1,4 @@
-class IndicacionesCliente{
+public class IndicacionesCliente{
     
     public static String? indicacionesC(String mensaje){
 	if(mensaje == "saluda"){

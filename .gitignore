@@ -1,0 +1,6 @@
+# Carpetas de build de Meson (proyecto en C)
+build/
+
+# Carpetas generadas por .NET (proyecto en C#)
+bin/
+obj/
