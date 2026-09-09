@@ -37,7 +37,7 @@ void runServidor() {
 
   /* Abrimos el servidor para que los clientes se puedan conectar */
   listen(servidorFd, 1);
-
+  
   printf("Escuchando en puerto 9000...\n");
 
   /* Ciclo infinito para la conexion de usuarios */

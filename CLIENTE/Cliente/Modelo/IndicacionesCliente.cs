@@ -2,11 +2,11 @@ public class IndicacionesCliente{
     
     public static String? indicacionesC(String mensaje){
 	if(mensaje == "saluda"){
-	    return "hola";
+	    return "hola\n";
 	} else if(mensaje=="despidete"){
-	    return "adios";
+	    return "adios\nhola\n";
 	}else if(mensaje=="salir"){
-	    return "exit";
+	    return "exit\n";
 	}
 	return null;
     }

@@ -72,7 +72,7 @@ class SocketCliente{
 	    if(solicitud!=null){
 
 		//Si el usuario quiere salir nos desconectamos
-		if(solicitud == "exit"){
+		if(solicitud == "exit\n"){
 		    Console.WriteLine("Cerrando Socket");
 		    cliente.Close();
 		    return;
@@ -81,7 +81,7 @@ class SocketCliente{
 		bytesPeticion = System.Text.Encoding.UTF8.GetBytes(solicitud);
 	    } else{
 		//Al no reconocer lo que dice pide el usuario mandamos un mensaje invalido al servidor
-		bytesPeticion = System.Text.Encoding.UTF8.GetBytes("Mensaje invalido");		
+		bytesPeticion = System.Text.Encoding.UTF8.GetBytes("Mensaje invalido\n");		
 	    }
 	    //Le escribimos al servidor
 	    stream.Write(bytesPeticion,0,bytesPeticion.Length);
