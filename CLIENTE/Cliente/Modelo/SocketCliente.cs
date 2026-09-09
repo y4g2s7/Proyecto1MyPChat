@@ -34,17 +34,34 @@ class SocketCliente{
 	NetworkStream stream = cliente.GetStream();
 	//Arreglo para guardar lo que el servidor responde
 	byte[] buffer = new byte[256];
-	
+	// variable para guardar lo que dice el ususario y poder manejarlo mejor
+	string acumulado ="";
 	//try catch para que cuando el usuario pida salir no truene de forma agresiva 
 	try{
 	    //Variable para guardar la cantidad de bytes recibidos
 	    int bytesLeidos;
-
+	    
 	    //Cliclo de lectura, termina cuando el servidor manda 0
 	    while((bytesLeidos = stream.Read(buffer, 0, buffer.Length))>0){
 		//Convertimos los bytes a string 
-		string mensaje = System.Text.Encoding.UTF8.GetString(buffer, 0, bytesLeidos);
-		Console.WriteLine("El servidor respondio: "+mensaje);
+		string mensajeDelServidor = System.Text.Encoding.UTF8.GetString(buffer, 0, bytesLeidos);
+		// Le pasamos el mensajeDelServidor a la variable afuera de los ciclos
+		acumulado += mensajeDelServidor;
+		int indice;
+		// Ciclo que termina cuando no encuentra en el string '\n'
+		while((indice= acumulado.IndexOf('\n'))!=-1){
+		    // Si tenemos la cadena vacia la ignoramos
+		    if (indice== 0){
+			acumulado = acumulado.Substring(indice+1);
+			continue;
+		    }
+		    // Hacemos un substring que sabemos que es un mensaje completo para imprirlo
+		    string mensajeCompleto = acumulado.Substring(0, indice);
+		    Console.WriteLine("El servidor respondio: "+ mensajeCompleto);
+		    //Actualizamos acumulado con el string que nos falta por tratar si es que existe,
+		    //sino queda vacio
+		    acumulado=acumulado.Substring(indice +1);
+		}
 	    }
 	} catch{
 	    return;
