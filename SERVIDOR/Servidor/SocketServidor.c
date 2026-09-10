@@ -37,7 +37,7 @@ void runServidor() {
 
   /* Abrimos el servidor para que los clientes se puedan conectar */
   listen(servidorFd, 1);
-
+  
   printf("Escuchando en puerto 9000...\n");
 
   /* Ciclo infinito para la conexion de usuarios */
@@ -61,7 +61,7 @@ void *atenderCliente(void *arg){
   int clienteFd = *(int *)arg;
 
   /* Creamos un arreglo para guardar lo que dice nos dice en cliente */
-  char buffer[256]={0};
+  char buffer[1024]={0};
 
   /* Variable para guardar cuantos bytes llevamos leidos, su funcion principal es cuando
     en una primera entrega de bytes por parte del servidor no recibimos "\n" podamos guardar
@@ -79,57 +79,65 @@ void *atenderCliente(void *arg){
   /* Ciclo que termina cuando el ususario se desconecta */
   while ((bytesLeidos = read(clienteFd, buffer+bytesAcumulados, sizeof(buffer)-bytesAcumulados))>0){
 
+    char *mensajes[20];
     /* Donde terminamos de recibir datos del cliente ponemos '\0' para marcar el final */
     buffer[bytesLeidos+bytesAcumulados]='\0';
 
-    /* Variable que guarda los datos hasta que encuentre '\n' */
-    char *mensajeFiltrado;
-
-    /* Ciclo que termina hasta que ya no haya '\n' en el mensaje */
-    while((mensajeFiltrado=strchr(inicioMensaje, '\n')) != NULL){
-
-      /* Donde encontramos '\n' ponemos '\0' para marcar el fin de ese mensaje */
-      *mensajeFiltrado='\0';
-
-      /* Si el mensaje era vacio, es decir solo era un '\n' lo ignoramos */
-      if(*inicioMensaje=='\0'){
-
-	/* Actualizamos incioMensaje */
-	inicioMensaje=mensajeFiltrado+1;
-	continue;
-      }
-
-      /* Madamos llamar indicaciones() para saber que vamos a responder */
-      char *respuesta=indicaciones(inicioMensaje);
-
-      /* Actualizamos incioMensaje */
-      inicioMensaje=mensajeFiltrado+1;
-      
-      /* Si el cliente le manda algo al sevidor que no puede decifrar
-	 le decimos al usuario y volvemos a esperar respuesta*/
-      if(respuesta == NULL){
-	printf("Error no puedo captar el mensaje\n");
-	continue;
-      }
-
-      /* Le contestamos al cliente */
-      write(clienteFd, respuesta, strlen(respuesta));
-    }
     /* Actualizamos la variable bytesAcumulados sumandole los bytesLeidos
-     si no hay bytes sobrantes despues se actualiza a 0*/
+       si no hay bytes sobrantes despues se actualiza a 0*/
     bytesAcumulados+=bytesLeidos;
-    
-    /* Limpiamos el buffer de los datos que ya procesamos, recorriendo la
-       informacion que aun nos falta por procesar (si es que tenemos) al inicio
-       y moviendo las variables que nos ayudan a ubicarnos
-       memmove(destino,origen,tamaño)*/
-    memmove(buffer,inicioMensaje,(buffer+bytesAcumulados)-inicioMensaje);
-    bytesAcumulados=(buffer+bytesAcumulados)-inicioMensaje;
-    inicioMensaje=buffer;
-  }
+  
+    int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes);
+
+    for(int i=0;i<numeroMensajes;i++){
+      write(clienteFd,mensajes[i],strlen(mensajes[i]));
+    }  
+  }  
   printf("Cliente se desconectó.\n");
 
   /* Liberamos el descriptor que se le agino al cliente */
   close(clienteFd);
   return NULL;
+}
+
+int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, char *mensajes[20]){
+  /* Variable que guarda los datos hasta que encuentre '\n' */
+  char *mensajeFiltrado;
+  
+  int contador = 0;
+  
+  /* Ciclo que termina hasta que ya no haya '\n' en el mensaje */
+  while((mensajeFiltrado=strchr(*inicioMensaje, '\n')) != NULL){
+
+    /* Donde encontramos '\n' ponemos '\0' para marcar el fin de ese mensaje */
+    *mensajeFiltrado='\0';
+
+    /* Si el mensaje era vacio, es decir solo era un '\n' lo ignoramos */
+    if(**inicioMensaje=='\0'){
+
+      /* Actualizamos incioMensaje */
+      *inicioMensaje=mensajeFiltrado+1;
+      continue;
+    }
+
+    /* Madamos llamar indicaciones() para saber que vamos a responder */
+    char *respuesta=indicaciones(*inicioMensaje);
+
+    /* Actualizamos incioMensaje */
+    *inicioMensaje=mensajeFiltrado+1;
+      
+    /* Si el cliente le manda algo al sevidor que no puede decifrar
+       le decimos al usuario y volvemos a esperar respuesta*/
+    if(respuesta == NULL){
+      printf("Error no puedo captar el mensaje\n");
+      continue;
+    }
+
+    mensajes[contador]=respuesta;
+    contador++;
+  }
+  memmove(buffer,*inicioMensaje,(buffer+*bytesAcumulados)-*inicioMensaje);
+  *bytesAcumulados=(buffer+*bytesAcumulados)-*inicioMensaje;
+  *inicioMensaje=buffer;
+  return contador;
 }
