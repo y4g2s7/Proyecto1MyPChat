@@ -37,3 +37,29 @@ void TestMensajeSinSeparador(){
   assert(bytesAcumulados == strlen("Este mensaje no tiene el separador"));
   assert(strcmp(buffer,"Este mensaje no tiene el separador")==0);
 }
+
+void TestMensajeSinSeparadorCompletado(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[50]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[20];
+  strcpy(buffer, "Este mensaje no tiene el separador");
+  int bytesAcumulados=strlen(buffer);
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes);
+  /* No debemos tener ningun mensaje procesado */
+  assert(0==numeroMensajes);
+  /* Pero si debemos tener el registro de el mensaje para despues procesarlo */
+  assert(bytesAcumulados == strlen("Este mensaje no tiene el separador"));
+  assert(strcmp(buffer,"Este mensaje no tiene el separador")==0);
+
+  strcat(buffer, "\n");
+  bytesAcumulados=strlen(buffer);
+  int numeroMensajesNuevo = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes);
+  /* No debemos tener ningun mensaje procesado */
+  assert(1==numeroMensajesNuevo);
+  /* Pero si debemos tener el registro de el mensaje para despues procesarlo */
+  assert(bytesAcumulados == 0);
+  assert(strcmp(buffer,"")==0);
+
+}

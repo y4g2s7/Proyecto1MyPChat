@@ -3,7 +3,7 @@ using System.Net.Sockets;
 //Libreria para los hilos
 using System.Threading;
 
-class SocketCliente{
+public class SocketCliente{
     //Metodo que recibe un String para la direccion ip y un int para el puerto
     public static void RunCliente(String ip, int puerto){
 	//Creamos el cliente
@@ -47,20 +47,9 @@ class SocketCliente{
 		string mensajeDelServidor = System.Text.Encoding.UTF8.GetString(buffer, 0, bytesLeidos);
 		// Le pasamos el mensajeDelServidor a la variable afuera de los ciclos
 		acumulado += mensajeDelServidor;
-		int indice;
-		// Ciclo que termina cuando no encuentra en el string '\n'
-		while((indice= acumulado.IndexOf('\n'))!=-1){
-		    // Si tenemos la cadena vacia la ignoramos
-		    if (indice== 0){
-			acumulado = acumulado.Substring(indice+1);
-			continue;
-		    }
-		    // Hacemos un substring que sabemos que es un mensaje completo para imprirlo
-		    string mensajeCompleto = acumulado.Substring(0, indice);
-		    Console.WriteLine("El servidor respondio: "+ mensajeCompleto);
-		    //Actualizamos acumulado con el string que nos falta por tratar si es que existe,
-		    //sino queda vacio
-		    acumulado=acumulado.Substring(indice +1);
+		List <string> mensajes = procesarBuffer(ref acumulado);
+		foreach(string texto in mensajes){
+		    Console.WriteLine("El servidor respondio"+texto);
 		}
 	    }
 	} catch{
@@ -68,6 +57,26 @@ class SocketCliente{
 	}
     }
 
+    public static List<string> procesarBuffer(ref string acumulado) {
+	List<string> mensajes = new List<string>();
+	int indice;
+	// Ciclo que termina cuando no encuentra en el string '\n'
+	while((indice= acumulado.IndexOf('\n'))!=-1){
+	    // Si tenemos la cadena vacia la ignoramos
+	    if (indice== 0){
+		acumulado = acumulado.Substring(indice+1);
+		continue;
+	    }
+	    // Hacemos un substring que sabemos que es un mensaje completo para imprirlo
+	    string mensajeCompleto = acumulado.Substring(0, indice);
+	    mensajes.Add(mensajeCompleto);
+	    //Actualizamos acumulado con el string que nos falta por tratar si es que existe,
+	    //sino queda vacio
+	    acumulado=acumulado.Substring(indice +1);
+	}
+	return mensajes;
+    }
+    
     static void fEscribe(TcpClient cliente){
 	NetworkStream stream = cliente.GetStream();
 	//Ciclo para escribir hasta que el usuario quiera salir
