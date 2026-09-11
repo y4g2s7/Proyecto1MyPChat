@@ -86,9 +86,11 @@ void *atenderCliente(void *arg){
     /* Actualizamos la variable bytesAcumulados sumandole los bytesLeidos
        si no hay bytes sobrantes despues se actualiza a 0*/
     bytesAcumulados+=bytesLeidos;
-  
+
+    /* Llamamos a la funcion que se encarga de separar los mensajes con \n y tratarlos */
     int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes);
 
+    /* Iteramos el arreglo donde guardamos las respuestas del servidor para mandarselas al cliente */
     for(int i=0;i<numeroMensajes;i++){
       write(clienteFd,mensajes[i],strlen(mensajes[i]));
     }  
@@ -103,7 +105,8 @@ void *atenderCliente(void *arg){
 int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, char *mensajes[20]){
   /* Variable que guarda los datos hasta que encuentre '\n' */
   char *mensajeFiltrado;
-  
+
+  /* Variable para iterar mensajes fuera del ciclo */
   int contador = 0;
   
   /* Ciclo que termina hasta que ya no haya '\n' en el mensaje */
@@ -133,9 +136,14 @@ int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, cha
       continue;
     }
 
+    /* Agregamos las respuestas a mensajes */
     mensajes[contador]=respuesta;
     contador++;
   }
+  /* Limpiamos el buffer de los datos que ya procesamos, recorriendo la
+     informacion que aun nos falta por procesar (si es que tenemos) al inicio
+     y moviendo las variables que nos ayudan a ubicarnos
+     memmove(destino,origen,tamaño)*/
   memmove(buffer,*inicioMensaje,(buffer+*bytesAcumulados)-*inicioMensaje);
   *bytesAcumulados=(buffer+*bytesAcumulados)-*inicioMensaje;
   *inicioMensaje=buffer;
