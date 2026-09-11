@@ -93,6 +93,7 @@ void *atenderCliente(void *arg){
     /* Iteramos el arreglo donde guardamos las respuestas del servidor para mandarselas al cliente */
     for(int i=0;i<numeroMensajes;i++){
       write(clienteFd,mensajes[i],strlen(mensajes[i]));
+      /* LIBERAR MEMORIA */
     }  
   }  
   printf("Cliente se desconectó.\n");
@@ -133,6 +134,7 @@ int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, cha
        le decimos al usuario y volvemos a esperar respuesta*/
     if(respuesta == NULL){
       printf("Error no puedo captar el mensaje\n");
+      /* DESCONECTAR AL CLIENTE si algo falla en la lectura del texto */
       continue;
     }
 
