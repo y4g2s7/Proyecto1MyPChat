@@ -1,5 +1,5 @@
 #include <string.h>
-#include "cJSON.h"
+#include "cJSON/cJSON.h"
 
 char *indicaciones(char *mensaje){
   if(strcmp(mensaje,"hola")==0){
