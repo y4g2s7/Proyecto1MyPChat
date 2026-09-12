@@ -7,6 +7,8 @@ public class IndicacionesCliente{
 	    return "adios\n";
 	}else if(mensaje=="salir"){
 	    return "exit\n";
+	}else if(mensaje =="identificacion json"){
+	    return "{\"type\":\"IDENTIFY\",\"username\":\"Kimberly\"}\n";
 	}
 	return null;
     }

@@ -126,7 +126,7 @@ int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, cha
     }
 
     /* Madamos llamar indicaciones() para saber que vamos a responder */
-    char *respuesta=indicaciones(*inicioMensaje);
+    char *respuesta=traduccionJSON(*inicioMensaje);
 
     /* Actualizamos incioMensaje */
     *inicioMensaje=mensajeFiltrado+1;

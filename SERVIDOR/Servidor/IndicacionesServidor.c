@@ -1,5 +1,7 @@
 #include <string.h>
 #include <cjson/cJSON.h>
+#include <stdlib.h>
+#include "TiposDeJson.h"
 
 char *indicaciones(char *mensaje){
   if(strcmp(mensaje,"hola")==0){
@@ -12,7 +14,7 @@ char *indicaciones(char *mensaje){
   return NULL;
 }
 
-char *JSON(char *mensaje){
+char *traduccionJSON(char *mensaje){
   cJSON *raiz = cJSON_Parse(mensaje);
   if(raiz == NULL){
     return NULL;
@@ -29,17 +31,15 @@ char *JSON(char *mensaje){
     if(usernameNodo==NULL){
       return NULL;
     }
-    char *username = usernameNodo->valuestring;
     
-    cJSON *respuesta = cJSON_CreateObject();
-    cJSON_AddStringToObject(respuesta, "type", "RESPONSE");
-    cJSON_AddStringToObject(respuesta, "operation", "IDENTIFY");
-    cJSON_AddStringToObject(respuesta, "result", "SUCCESS");
-    cJSON_AddStringToObject(respuesta, "extra", username);
-    char *StringRespuesta= cJSON_PrintUnformatted(respuesta);
+    char user[9];
+    strcpy(user,usernameNodo->valuestring);
     
+    MIdentify *identify = newIdentify(user);
     cJSON_Delete(raiz);
-    return StringRespuesta;
+    char *respuesta=agregarUsuario(identify);
+    free(identify);
+    return respuesta;
   }
   return NULL;
 }
