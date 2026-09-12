@@ -4,7 +4,7 @@ public class IndicacionesCliente{
 	if(mensaje == "saluda"){
 	    return "hola\n";
 	} else if(mensaje=="despidete"){
-	    return "adios\nhola\n";
+	    return "adios\n";
 	}else if(mensaje=="salir"){
 	    return "exit\n";
 	}

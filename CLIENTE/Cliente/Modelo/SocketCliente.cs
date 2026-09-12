@@ -49,7 +49,7 @@ public class SocketCliente{
 		acumulado += mensajeDelServidor;
 		List <string> mensajes = procesarBuffer(ref acumulado);
 		foreach(string texto in mensajes){
-		    Console.WriteLine("El servidor respondio"+texto);
+		    Console.WriteLine("El servidor respondio: "+texto);
 		}
 	    }
 	} catch{

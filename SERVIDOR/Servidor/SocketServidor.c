@@ -29,7 +29,7 @@ void runServidor() {
 
   /* Le decimos que acepte conexion desde cualquier IP */
   direccion.sin_addr.s_addr = INADDR_ANY;
-
+  
   /* Le damos un puerto */
   direccion.sin_port = htons(9000);
 
@@ -94,6 +94,7 @@ void *atenderCliente(void *arg){
     for(int i=0;i<numeroMensajes;i++){
       write(clienteFd,mensajes[i],strlen(mensajes[i]));
       /* LIBERAR MEMORIA */
+      /* free(mensajes[i]); */
     }  
   }  
   printf("Cliente se desconectó.\n");
