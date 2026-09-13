@@ -4,6 +4,9 @@ using System.Net.Sockets;
 using System.Threading;
 
 public class SocketCliente{
+    // Variable para que el hilo de escucha o de escribe detecten si el servidor te desconecto
+    static volatile bool terminado = false;
+    
     //Metodo que recibe un String para la direccion ip y un int para el puerto
     public static void RunCliente(String ip, int puerto){
 	//Creamos el cliente
@@ -23,11 +26,12 @@ public class SocketCliente{
 
 	//Creamos el hilo para escribirle al servidor y llamamos a fEscribe 
 	Thread hiloEscribe = new Thread(()=> fEscribe(cliente));
+	// El hilo de escribe no impide que el programa termien
+	hiloEscribe.IsBackground = true;
 	hiloEscribe.Start();
 
-	//Hacemos que el metodo espere a que terminen los hilos para terminar
+	//Hacemos que el metodo espere a que termine el hilo de escuchar para terminar
 	hiloEscucha.Join();
-	hiloEscribe.Join();
     }
 
     static void fEscucha(TcpClient cliente){
@@ -49,7 +53,13 @@ public class SocketCliente{
 		acumulado += mensajeDelServidor;
 		List <string> mensajes = procesarBuffer(ref acumulado);
 		foreach(string texto in mensajes){
-		    Console.WriteLine("El servidor respondio"+texto);
+		    Console.WriteLine("El servidor respondio: "+texto);
+		    if(texto == "{\"type\":\"RESPONSE\",\"operation\":\"INVALID\",\"result\":\"NOT_IDENTIFIED\"}"){
+			Console.WriteLine("Cerrando Socket");
+			terminado = true;
+			cliente.Close();
+			return;
+		    }
 		}
 	    }
 	} catch{
@@ -79,11 +89,14 @@ public class SocketCliente{
     
     static void fEscribe(TcpClient cliente){
 	NetworkStream stream = cliente.GetStream();
-	//Ciclo para escribir hasta que el usuario quiera salir
-	while(true){
+	//Ciclo para escribir hasta que el usuario quiera salir o que el servidor te saque
+	while(!terminado){
+	     
 	    //Leemos lo que quiere hacer el ususario
 	    String? peticion = Console.ReadLine();
 
+	    if(terminado) break;
+	    
 	    if(peticion == null){
 		Console.WriteLine("Error tienes que escribir algo");
 		continue;
@@ -100,6 +113,7 @@ public class SocketCliente{
 		//Si el usuario quiere salir nos desconectamos
 		if(solicitud == "exit\n"){
 		    Console.WriteLine("Cerrando Socket");
+		    terminado = true;
 		    cliente.Close();
 		    return;
 		}
@@ -109,8 +123,13 @@ public class SocketCliente{
 		//Al no reconocer lo que dice pide el usuario mandamos un mensaje invalido al servidor
 		bytesPeticion = System.Text.Encoding.UTF8.GetBytes("Mensaje invalido\n");		
 	    }
-	    //Le escribimos al servidor
-	    stream.Write(bytesPeticion,0,bytesPeticion.Length);
+
+	    try{
+		stream.Write(bytesPeticion, 0, bytesPeticion.Length);
+	    } catch {
+		terminado = true;
+		return;   
+	    }
 	}
     }
 }

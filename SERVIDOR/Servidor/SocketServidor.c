@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include "IndicacionesServidor.h"
 #include "SocketServidor.h"
+#include <stdbool.h>
 
 /* Funcion que se encarga de la creacion del servidor y de su capacidad
    para trabajar con multiples usuarios */
@@ -29,7 +30,7 @@ void runServidor() {
 
   /* Le decimos que acepte conexion desde cualquier IP */
   direccion.sin_addr.s_addr = INADDR_ANY;
-
+  
   /* Le damos un puerto */
   direccion.sin_port = htons(9000);
 
@@ -61,7 +62,7 @@ void *atenderCliente(void *arg){
   int clienteFd = *(int *)arg;
 
   /* Creamos un arreglo para guardar lo que dice nos dice en cliente */
-  char buffer[1024]={0};
+  char buffer[1024*1024]={0};
 
   /* Variable para guardar cuantos bytes llevamos leidos, su funcion principal es cuando
     en una primera entrega de bytes por parte del servidor no recibimos "\n" podamos guardar
@@ -76,33 +77,44 @@ void *atenderCliente(void *arg){
      dice que el usuario se desconecto, si es negativo hubo un error*/
   ssize_t bytesLeidos;
 
+  /* Variable para guardar si tengo que desconectar al cliente por algun error */
+    bool desconexion = false;
+    
   /* Ciclo que termina cuando el ususario se desconecta */
   while ((bytesLeidos = read(clienteFd, buffer+bytesAcumulados, sizeof(buffer)-bytesAcumulados))>0){
-
-    char *mensajes[20];
+    char *mensajes[50];
+    
     /* Donde terminamos de recibir datos del cliente ponemos '\0' para marcar el final */
     buffer[bytesLeidos+bytesAcumulados]='\0';
 
     /* Actualizamos la variable bytesAcumulados sumandole los bytesLeidos
        si no hay bytes sobrantes despues se actualiza a 0*/
     bytesAcumulados+=bytesLeidos;
-
+    
     /* Llamamos a la funcion que se encarga de separar los mensajes con \n y tratarlos */
-    int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes);
-
+    int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion);
+    
     /* Iteramos el arreglo donde guardamos las respuestas del servidor para mandarselas al cliente */
     for(int i=0;i<numeroMensajes;i++){
       write(clienteFd,mensajes[i],strlen(mensajes[i]));
+      
+      if(desconexion){
+	goto fin;
+      }
+      /* LIBERAR MEMORIA */
+      /* free(mensajes[i]); */
     }  
-  }  
+  }
+ fin:
   printf("Cliente se desconectó.\n");
-
-  /* Liberamos el descriptor que se le agino al cliente */
-  close(clienteFd);
+  if(!desconexion){
+    /* Liberamos el descriptor que se le agino al cliente */
+    close(clienteFd);
+  }
   return NULL;
 }
 
-int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, char *mensajes[20]){
+int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, char *mensajes[50],bool *desconexion){
   /* Variable que guarda los datos hasta que encuentre '\n' */
   char *mensajeFiltrado;
 
@@ -124,7 +136,7 @@ int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, cha
     }
 
     /* Madamos llamar indicaciones() para saber que vamos a responder */
-    char *respuesta=indicaciones(*inicioMensaje);
+    char *respuesta=traduccionJSON(*inicioMensaje);
 
     /* Actualizamos incioMensaje */
     *inicioMensaje=mensajeFiltrado+1;
@@ -132,10 +144,9 @@ int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, cha
     /* Si el cliente le manda algo al sevidor que no puede decifrar
        le decimos al usuario y volvemos a esperar respuesta*/
     if(respuesta == NULL){
-      printf("Error no puedo captar el mensaje\n");
-      continue;
+      respuesta="{\"type\":\"RESPONSE\",\"operation\":\"INVALID\",\"result\":\"NOT_IDENTIFIED\"}\n";
+      *desconexion = true;
     }
-
     /* Agregamos las respuestas a mensajes */
     mensajes[contador]=respuesta;
     contador++;

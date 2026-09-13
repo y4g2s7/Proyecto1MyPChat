@@ -8,6 +8,9 @@ jobs:
       - name: Instalar Meson y Ninja
         run: sudo apt-get update && sudo apt-get install -y meson ninja-build
 
+      - name: Instalar libcjson-dev y pkgconf
+        run: sudo apt-get install -y pkgconf libcjson-dev
+
       - name: Configurar build
         run: meson setup build
         working-directory: SERVIDOR

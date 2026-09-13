@@ -5,6 +5,7 @@
 int main() {
   TestMensajeVacio();
   TestMensajeSinSeparador();
+  TestMensajeSinSeparadorCompletado();
   return 0;
 }
 
