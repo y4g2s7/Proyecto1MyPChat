@@ -6,7 +6,7 @@
 /* Nodos del diccionario */
 typedef struct {
   /* la llave */
-  char username[9];       
+  char username[9];      
   /* el valor asociado */
   int socket_fd;            
   /* el campo especial que uthash necesita */
