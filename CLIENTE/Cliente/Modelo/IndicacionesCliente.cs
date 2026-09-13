@@ -5,8 +5,11 @@ public class IndicacionesCliente{
         if(mensaje=="salir"){
 	    return "exit\n";
 	}else if(mensaje =="conectarse"){
-	    return "{\"type\":\"IDENTIFY\",\"username\":\""+usuario+"\"}\n";
+	    return ConstruccionJson.construirIdentificacion();
 	}
 	return null;
     }
+
+    
 }
+

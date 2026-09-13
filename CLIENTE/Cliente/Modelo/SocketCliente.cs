@@ -2,6 +2,8 @@
 using System.Net.Sockets;
 //Libreria para los hilos
 using System.Threading;
+//Libreria para los Json
+using System.Text.Json.Nodes;
 
 public class SocketCliente{
     // Variable para que el hilo de escucha o de escribe detecten si el servidor te desconecto
@@ -59,14 +61,18 @@ public class SocketCliente{
 		foreach(string texto in mensajes){
 		    // Escribimos lo que el servidor nos dijo
 		    Console.WriteLine("El servidor respondio: "+texto);
+
+		    // Parseamos lo que nos dice el servidor
+		    JsonNode? respuesta= JsonNode.Parse(texto);
+		    
 		    // Si el servidor nos dice que no nos entendio, cerramos nuesto socket porque el ya nos desconecto
-		    if(texto == "{\"type\":\"RESPONSE\",\"operation\":\"INVALID\",\"result\":\"NOT_IDENTIFIED\"}"){
+		    if(LecturaJson.noEntendido(respuesta)){
 			Console.WriteLine("Cerrando Socket");
 			terminado = true;
 			cliente.Close();
 			return;
 			// Verificamos si el servidor nos dice que la identificacion fue correcta
-		    } else if(texto == "{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\""+IndicacionesCliente.usuario+"\"}"){
+		    } else if(LecturaJson.esIdentificacionExitosa(respuesta)){
 			// Actualizamos la variable para decir que ya se hizo el registro
 			identificacionCompletada = true;   
 		    }
