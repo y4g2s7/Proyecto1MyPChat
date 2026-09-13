@@ -3,17 +3,6 @@
 #include <stdlib.h>
 #include "TiposDeJson.h"
 
-char *indicaciones(char *mensaje){
-  if(strcmp(mensaje,"hola")==0){
-    return "bienvenido\n";
-  } else if(strcmp(mensaje,"adios")==0){
-    return "vuelve pronto\n";
-  } else{
-    return "No te entendi\n";
-  }
-  return NULL;
-}
-
 char *traduccionJSON(char *mensaje){
   cJSON *raiz = cJSON_Parse(mensaje);
   if(raiz == NULL){
@@ -33,8 +22,8 @@ char *traduccionJSON(char *mensaje){
     }
     
     char user[9];
-    strcpy(user,usernameNodo->valuestring);
-    
+    strncpy(user,usernameNodo->valuestring,9);
+    user[8]='\0';
     MIdentify *identify = newIdentify(user);
     cJSON_Delete(raiz);
     char *respuesta=agregarUsuario(identify);

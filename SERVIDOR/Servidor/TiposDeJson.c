@@ -22,10 +22,11 @@ char *agregarUsuario(MIdentify *midentify){
   cJSON_Delete(respuesta);
 
   size_t len=strlen(StringRespuesta);
-  char *tmp=realloc(StringRespuesta,len+1);
+  char *tmp=realloc(StringRespuesta,len+2);
   if (tmp != NULL){
     StringRespuesta=tmp;
     StringRespuesta[len]='\n';
+    StringRespuesta[len+1]='\0';
   }
   /* Hacer otro json para avisrles a los demas usuarios
      mediante la lista que se conecto uno nuevo */  
