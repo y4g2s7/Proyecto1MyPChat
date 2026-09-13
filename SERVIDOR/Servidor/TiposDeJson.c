@@ -2,6 +2,7 @@
 #include <string.h>
 #include "TiposDeJson.h"
 #include <cjson/cJSON.h>
+#include "ListaDeUsuarios.h"
  
 MIdentify *newIdentify(char username[9]){
   MIdentify *identify = malloc(sizeof(MIdentify));
@@ -11,8 +12,6 @@ MIdentify *newIdentify(char username[9]){
 }
 
 char *agregarUsuario(MIdentify *midentify){
-  /* verificar que el nombre no esta en la lista de usuarios */
-  /* Crear un nuevo usuario  */
   cJSON *respuesta = cJSON_CreateObject();
   cJSON_AddStringToObject(respuesta, "type", "RESPONSE");
   cJSON_AddStringToObject(respuesta, "operation", "IDENTIFY");
@@ -20,15 +19,29 @@ char *agregarUsuario(MIdentify *midentify){
   cJSON_AddStringToObject(respuesta, "extra", midentify->username);
   char *StringRespuesta= cJSON_PrintUnformatted(respuesta);
   cJSON_Delete(respuesta);
-
-  size_t len=strlen(StringRespuesta);
-  char *tmp=realloc(StringRespuesta,len+2);
-  if (tmp != NULL){
-    StringRespuesta=tmp;
-    StringRespuesta[len]='\n';
-    StringRespuesta[len+1]='\0';
-  }
-  /* Hacer otro json para avisrles a los demas usuarios
-     mediante la lista que se conecto uno nuevo */  
+  agregarSaltoLinea(&StringRespuesta);
   return StringRespuesta;
+}
+
+char *usuarioExistente(MIdentify *midentify){
+  /* Crear un nuevo usuario  */
+  cJSON *respuesta = cJSON_CreateObject();
+  cJSON_AddStringToObject(respuesta, "type", "RESPONSE");
+  cJSON_AddStringToObject(respuesta, "operation", "IDENTIFY");
+  cJSON_AddStringToObject(respuesta, "result", "USER_ALREADY_EXISTS");
+  cJSON_AddStringToObject(respuesta, "extra", midentify->username);
+  char *StringRespuesta= cJSON_PrintUnformatted(respuesta);
+  cJSON_Delete(respuesta);
+  agregarSaltoLinea(&StringRespuesta);
+  return StringRespuesta;
+}
+
+void agregarSaltoLinea(char **mensaje){
+  size_t len=strlen(*mensaje);
+  char *tmp=realloc(*mensaje,len+2);
+  if (tmp != NULL){
+    *mensaje=tmp;
+    (*mensaje)[len]='\n';
+    (*mensaje)[len+1]='\0';
+   }
 }

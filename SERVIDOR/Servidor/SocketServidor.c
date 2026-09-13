@@ -92,7 +92,7 @@ void *atenderCliente(void *arg){
     bytesAcumulados+=bytesLeidos;
     
     /* Llamamos a la funcion que se encarga de separar los mensajes con \n y tratarlos */
-    int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion);
+    int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,clienteFd);
     
     /* Iteramos el arreglo donde guardamos las respuestas del servidor para mandarselas al cliente */
     for(int i=0;i<numeroMensajes;i++){
@@ -114,7 +114,7 @@ void *atenderCliente(void *arg){
   return NULL;
 }
 
-int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, char *mensajes[50],bool *desconexion){
+int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, char *mensajes[50],bool *desconexion,int socket_fd){
   /* Variable que guarda los datos hasta que encuentre '\n' */
   char *mensajeFiltrado;
 
@@ -128,7 +128,7 @@ int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, cha
     *mensajeFiltrado='\0';
 
     /* Si el mensaje era vacio, es decir solo era un '\n' lo ignoramos */
-    if(**inicioMensaje=='\0'){
+   if(**inicioMensaje=='\0'){
 
       /* Actualizamos incioMensaje */
       *inicioMensaje=mensajeFiltrado+1;
@@ -136,7 +136,7 @@ int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, cha
     }
 
     /* Madamos llamar indicaciones() para saber que vamos a responder */
-    char *respuesta=traduccionJSON(*inicioMensaje);
+   char *respuesta=traduccionJSON(*inicioMensaje, socket_fd);
 
     /* Actualizamos incioMensaje */
     *inicioMensaje=mensajeFiltrado+1;

@@ -7,5 +7,7 @@ typedef struct {
 
 MIdentify *newIdentify(char username[9]);
 char *agregarUsuario(MIdentify *midentify);
+char *usuarioExistente(MIdentify *midentify);
+void agregarSaltoLinea(char **mensaje);
 #endif
 

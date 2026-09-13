@@ -31,6 +31,6 @@ class Cliente {
 	    return;
 	}
 	//Lamamos al metodo de Socket para crear los sockets y la conexion
-	SocketCliente.RunCliente(ip,numeroPuerto);
+        SocketCliente.RunCliente(ip,numeroPuerto);
     }
 }

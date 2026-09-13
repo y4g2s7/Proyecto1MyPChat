@@ -6,7 +6,11 @@ using System.Threading;
 public class SocketCliente{
     // Variable para que el hilo de escucha o de escribe detecten si el servidor te desconecto
     static volatile bool terminado = false;
-    
+    // Variable que nos dice si el usuario ya se identifico
+    static volatile bool identificacionCompletada = false;
+    // Variable que coordina a los hilos para la identificacion
+    static AutoResetEvent respuestaIdentificacion = new AutoResetEvent(false);
+
     //Metodo que recibe un String para la direccion ip y un int para el puerto
     public static void RunCliente(String ip, int puerto){
 	//Creamos el cliente
@@ -14,7 +18,7 @@ public class SocketCliente{
 	try{
 	    //Conectamos pasandole la ip y el puerto
 	    cliente.Connect(ip,puerto);
-	    Console.WriteLine("Te haz conectado al servidor ¿Que deseas hacer?");
+	    Console.WriteLine("Te haz conectado al servidor");
 	} catch{
 	    //Si falla la conexion avisamos al usuario
 	    Console.WriteLine("ERROR no se pudo conectar al sevidor");
@@ -53,13 +57,21 @@ public class SocketCliente{
 		acumulado += mensajeDelServidor;
 		List <string> mensajes = procesarBuffer(ref acumulado);
 		foreach(string texto in mensajes){
+		    // Escribimos lo que el servidor nos dijo
 		    Console.WriteLine("El servidor respondio: "+texto);
+		    // Si el servidor nos dice que no nos entendio, cerramos nuesto socket porque el ya nos desconecto
 		    if(texto == "{\"type\":\"RESPONSE\",\"operation\":\"INVALID\",\"result\":\"NOT_IDENTIFIED\"}"){
 			Console.WriteLine("Cerrando Socket");
 			terminado = true;
 			cliente.Close();
 			return;
+			// Verificamos si el servidor nos dice que la identificacion fue correcta
+		    } else if(texto == "{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\""+IndicacionesCliente.usuario+"\"}"){
+			// Actualizamos la variable para decir que ya se hizo el registro
+			identificacionCompletada = true;   
 		    }
+		    //Despierta al hilo de escritura
+		    respuestaIdentificacion.Set();
 		}
 	    }
 	} catch{
@@ -89,7 +101,38 @@ public class SocketCliente{
     
     static void fEscribe(TcpClient cliente){
 	NetworkStream stream = cliente.GetStream();
-	//Ciclo para escribir hasta que el usuario quiera salir o que el servidor te saque
+
+	// Ciclo que se mantiene hasta que el usuario se logre registrar
+	while(!identificacionCompletada){
+	      
+	    //Le pedimos su nombre de usuario al usuario
+	    Console.WriteLine("Escribe el nombre con el que te quieres conectar");
+	    String? usuario=Console.ReadLine();
+	
+	    //Verificacion de que el nombre que puso el usuario no es null
+	    if(usuario == null){
+		Console.WriteLine("Error tienes que escribir un nombre");
+		return;
+	    }
+	    // Actualizamos la variable del nombre de usuario
+	    IndicacionesCliente.usuario=usuario;
+	    String? conectarse = IndicacionesCliente.indicacionesC("conectarse");
+	    //Arreglo de bytes para guardar la respuesta del cliente y convertirla en bytes
+	    if(conectarse==null)return;
+	    byte[] bytesPeticion;
+
+	    // Le mandamos el mensaje al servidor de que nos queremos conectar con nuestro nombre de usuario
+	    bytesPeticion = System.Text.Encoding.UTF8.GetBytes(conectarse);
+	    try{
+		stream.Write(bytesPeticion, 0, bytesPeticion.Length);
+	    } catch {
+		terminado = true;
+		return;   
+	    }
+	    //se bloquea aquí hasta que fEscucha reciba la respuesta del servidor y responda
+	    respuestaIdentificacion.WaitOne();
+	}
+	//Ciclo para escribir hasta que el usuario quiera salir o que el servidor te saque	
 	while(!terminado){
 	     
 	    //Leemos lo que quiere hacer el ususario
