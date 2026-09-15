@@ -1,6 +1,7 @@
 #ifndef LISTADEUSUSARIOS_H  
 #define LISTADEUSUARIOS_H
 #include <uthash.h>
+#include <pthread.h>
 
 
 /* Nodos del diccionario */
@@ -14,6 +15,7 @@ typedef struct {
 } Usuario;
 
 extern Usuario *tablaUsuarios;
+extern pthread_mutex_t mutexUsuarios;
 Usuario *newUsuario(char username[9],int socket_fd);
 
 #endif

@@ -36,6 +36,18 @@ char *usuarioExistente(MIdentify *midentify){
   return StringRespuesta;
 }
 
+char *avisoNuevoUsuario(MIdentify *midentify){
+    /* Crear un nuevo usuario  */
+  cJSON *respuesta = cJSON_CreateObject();
+  cJSON_AddStringToObject(respuesta, "type", "NEW_USER");
+  cJSON_AddStringToObject(respuesta, "username", midentify->username);
+  char *StringRespuesta= cJSON_PrintUnformatted(respuesta);
+  cJSON_Delete(respuesta);
+  agregarSaltoLinea(&StringRespuesta);
+  return StringRespuesta;
+}
+
+/* Funcion que agrega el salto de linea para enviar al cliente y el \0 para marcar el limite en C */
 void agregarSaltoLinea(char **mensaje){
   size_t len=strlen(*mensaje);
   char *tmp=realloc(*mensaje,len+2);

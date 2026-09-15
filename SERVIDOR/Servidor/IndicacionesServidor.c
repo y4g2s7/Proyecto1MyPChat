@@ -5,6 +5,8 @@
 #include <uthash.h>
 #include "ListaDeUsuarios.h"
 #include "IndicacionesServidor.h"
+#include <pthread.h>
+#include <unistd.h>
 
 char *traduccionJSON(char *mensaje, int socket_fd){
   /* Vemos si lo que nos enviaron es JSON */
@@ -37,6 +39,8 @@ char *Identificar(cJSON *usernameNodo,int socket_fd){
   strncpy(user,usernameNodo->valuestring,9);
   user[8]='\0';
   MIdentify *identify = newIdentify(user);
+  
+  pthread_mutex_lock(&mutexUsuarios);
   /* Revizamos si el nombre del usuario esta ya en la lista */
   Usuario *encontrado = NULL;
   HASH_FIND_STR(tablaUsuarios, identify->username, encontrado);
@@ -49,9 +53,20 @@ char *Identificar(cJSON *usernameNodo,int socket_fd){
     HASH_ADD_STR(tablaUsuarios, username, nuevo);      
     /* Agregar a la lista */
     respuesta=agregarUsuario(identify);
+
+    /* Iteramos la lista de usuarios para avisar que un nuevo usuario se conecto */
+    char *aviso = avisoNuevoUsuario(identify);
+    Usuario *actual, *tmp;
+    HASH_ITER(hh, tablaUsuarios, actual, tmp) {
+      if(actual->socket_fd==socket_fd){
+	continue;
+      }
+      write(actual->socket_fd, aviso, strlen(aviso));
+    }
   } else{
     respuesta=usuarioExistente(identify);
   }
+  pthread_mutex_unlock(&mutexUsuarios);
   free(identify);
   return respuesta;
   
