@@ -120,8 +120,14 @@ public class SocketCliente{
 		Console.WriteLine("Error tienes que escribir un nombre");
 		return;
 	    }
+
+	    if (usuario.Length > 8) {
+		usuario = usuario.Substring(0, 8);
+	    }
+
 	    // Actualizamos la variable del nombre de usuario
 	    IndicacionesCliente.usuario=usuario;
+	    
 	    String? conectarse = IndicacionesCliente.indicacionesC("conectarse");
 	    //Arreglo de bytes para guardar la respuesta del cliente y convertirla en bytes
 	    if(conectarse==null)return;
