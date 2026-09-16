@@ -16,6 +16,7 @@ Usuario *newUsuario(char username[9],int socket_fd){
   strncpy(nuevo->username,username,sizeof(nuevo->username));
   nuevo->username[8]='\0';
   nuevo->socket_fd = socket_fd;
+  nuevo->estado = strdup("ACTIVE");
   return nuevo;
 }
  

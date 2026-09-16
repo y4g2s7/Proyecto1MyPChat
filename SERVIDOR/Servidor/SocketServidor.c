@@ -7,6 +7,7 @@
 #include "IndicacionesServidor.h"
 #include "SocketServidor.h"
 #include <stdbool.h>
+#include "ListaDeUsuarios.h"
 
 /* Funcion que se encarga de la creacion del servidor y de su capacidad
    para trabajar con multiples usuarios */
@@ -61,7 +62,7 @@ void runServidor() {
 void *atenderCliente(void *arg){
   int clienteFd = *(int *)arg;
 
-  /* Creamos un arreglo para guardar lo que dice nos dice en cliente */
+  /* Creamos un arreglo para guardar lo que nos dice en cliente */
   char buffer[1024*1024]={0};
 
   /* Variable para guardar cuantos bytes llevamos leidos, su funcion principal es cuando
@@ -97,20 +98,35 @@ void *atenderCliente(void *arg){
     /* Iteramos el arreglo donde guardamos las respuestas del servidor para mandarselas al cliente */
     for(int i=0;i<numeroMensajes;i++){
       write(clienteFd,mensajes[i],strlen(mensajes[i]));
+
+      /* LIBERAR MEMORIA */
+      free(mensajes[i]);
       
       if(desconexion){
+	for(int j=i+1;j<numeroMensajes;j++){
+	  free(mensajes[j]);
+	}
 	goto fin;
       }
-      /* LIBERAR MEMORIA */
-      /* free(mensajes[i]); */
+      
     }  
   }
  fin:
   printf("Cliente se desconectó.\n");
-  if(!desconexion){
-    /* Liberamos el descriptor que se le agino al cliente */
-    close(clienteFd);
-  }
+  
+  /* Liberamos el descriptor que se le agino al cliente */
+  close(clienteFd);
+  
+  /* Borramos al usuario de la lista */
+  Usuario *actual, *tmp;
+  HASH_ITER(hh, tablaUsuarios, actual, tmp) {
+    if(actual->socket_fd==clienteFd){
+      HASH_DEL(tablaUsuarios, actual);
+      free(actual->estado);
+      free(actual);
+      break;
+    }
+  } 
   return NULL;
 }
 
@@ -137,19 +153,24 @@ int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, cha
 
     /* Madamos llamar indicaciones() para saber que vamos a responder */
    char *respuesta=traduccionJSON(*inicioMensaje, socket_fd);
-
+   
     /* Actualizamos incioMensaje */
     *inicioMensaje=mensajeFiltrado+1;
       
     /* Si el cliente le manda algo al sevidor que no puede decifrar
        le decimos al usuario y volvemos a esperar respuesta*/
     if(respuesta == NULL){
-      respuesta="{\"type\":\"RESPONSE\",\"operation\":\"INVALID\",\"result\":\"NOT_IDENTIFIED\"}\n";
+      respuesta=strdup("{\"type\":\"RESPONSE\",\"operation\":\"INVALID\",\"result\":\"NOT_IDENTIFIED\"}\n");
       *desconexion = true;
+      if(respuesta==NULL) break;
     }
+
+    /* Si es un mensaje  que no debemos regresar nada al usuario ignoramos */
+    if(strcmp(respuesta,"ignora")!=0){
     /* Agregamos las respuestas a mensajes */
-    mensajes[contador]=respuesta;
-    contador++;
+      mensajes[contador]=respuesta;
+      contador++;
+    }
   }
   /* Limpiamos el buffer de los datos que ya procesamos, recorriendo la
      informacion que aun nos falta por procesar (si es que tenemos) al inicio

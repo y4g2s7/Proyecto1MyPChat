@@ -6,6 +6,7 @@
 
 /* Nodos del diccionario */
 typedef struct {
+  char *estado;
   /* la llave */
   char username[9];      
   /* el valor asociado */
