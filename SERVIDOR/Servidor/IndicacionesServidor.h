@@ -1,4 +1,7 @@
 #ifndef INDICACIONESSERVIDOR_H
 #define INDICACIONESSERVIDOR_H
-char *traduccionJSON(char *mensaje);
+#include <cjson/cJSON.h>
+char *traduccionJSON(char *mensaje, int socket_fd);
+char *cambioEstado(cJSON *statusNodo, int socket_fd);
+char *Identificar(cJSON *usernameNodo, int socket_fd);
 #endif

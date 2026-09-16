@@ -14,12 +14,12 @@ void TestMensajeVacio(){
   strcpy(buffer, "{\"type\":\"IDENTIFY\",\"username\":\"Kimberly\"}\n\n{\"type\":\"IDENTIFY\",\"username\":\"Kimberly\"}\n");
   int bytesAcumulados=strlen(buffer);
   bool desconexion = false;
-  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion);
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,2);
   /* Aunque pasame 3 \n solo debe de guardar 2 mensajes  */
   assert(2==numeroMensajes);
   /* Revisemos el contenido de lo guardado coincide a lo esperado */
   assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\"Kimberly\"}\n")==0);
-  assert(strcmp(mensajes[1],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\"Kimberly\"}\n")==0);
+  assert(strcmp(mensajes[1],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"USER_ALREADY_EXISTS\",\"extra\":\"Kimberly\"}\n")==0);
 }
 
 /* Prueba unitaria que reviza si se se guarda un mensaje que aun no tiene \n */
@@ -33,7 +33,7 @@ void TestMensajeSinSeparador(){
   strcpy(buffer, "Este mensaje no tiene el separador");
   int bytesAcumulados=strlen(buffer);
   bool desconexion = false;
-  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes, &desconexion);
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes, &desconexion,2);
   /* No debemos tener ningun mensaje procesado */
   assert(0==numeroMensajes);
   /* Pero si debemos tener el registro de el mensaje para despues procesarlo */
@@ -50,7 +50,7 @@ void TestMensajeSinSeparadorCompletado(){
   strcpy(buffer, "Este mensaje no tiene el separador");
   int bytesAcumulados=strlen(buffer);
   bool desconexion = false;
-  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion);
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,2);
   /* No debemos tener ningun mensaje procesado */
   assert(0==numeroMensajes);
   /* Pero si debemos tener el registro de el mensaje para despues procesarlo */
@@ -59,7 +59,7 @@ void TestMensajeSinSeparadorCompletado(){
 
   strcat(buffer, "\n");
   bytesAcumulados=strlen(buffer);
-  int numeroMensajesNuevo = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion);
+  int numeroMensajesNuevo = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,2);
   /* No debemos tener ningun mensaje procesado */
   assert(1==numeroMensajesNuevo);
   assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"INVALID\",\"result\":\"NOT_IDENTIFIED\"}\n")==0);
