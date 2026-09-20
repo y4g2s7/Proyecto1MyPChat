@@ -39,19 +39,69 @@ char *traduccionJSON(char *mensaje, int socket_fd){
       goto cleanup;
     }
     respuesta = cambioEstado(statusNodo,socket_fd);
+  } else if(strcmp(tipoTexto,"TEXT")==0){
+    cJSON *destinatarioNodo = cJSON_GetObjectItem(raiz, "username");
+    if(destinatarioNodo==NULL || !cJSON_IsString(destinatarioNodo)){
+      goto cleanup;
+    }
+    cJSON *mensajeNodo = cJSON_GetObjectItem(raiz, "text");
+    if(mensajeNodo==NULL || !cJSON_IsString(mensajeNodo)){
+      goto cleanup;
+    }
+    respuesta = mensajePrivado(destinatarioNodo,mensajeNodo,socket_fd);
   }
  cleanup:
   cJSON_Delete(raiz);
   return respuesta;
 }
- 
+
+char *mensajePrivado(cJSON *destinatarioNodo, cJSON *mensajeNodo, int socket_fd){
+  char *respuesta;
+  char *destinatario = destinatarioNodo->valuestring;
+  char *mensaje = mensajeNodo->valuestring;
+  if(mensaje[0]=='\0'){
+    return NULL;
+  }
+  
+  pthread_mutex_lock(&mutexUsuarios);
+  /* Buscamos el usuario al que el usuario le quiere enviar el mensaje */
+  Usuario *encontrado = NULL;
+  HASH_FIND_STR(tablaUsuarios, destinatario, encontrado);
+  pthread_mutex_unlock(&mutexUsuarios);
+  
+  if(encontrado ==NULL){
+    respuesta = crearJson("RESPONSE","TEXT","NO_SUCH_USER", destinatario, NULL, NULL,NULL);
+  } else{
+    char *remitente = getUsername(socket_fd);
+    char *json = crearJson("TEXT_FROM",NULL,NULL,NULL,remitente,NULL,mensaje);
+    write(encontrado->socket_fd, json, strlen(json));
+    respuesta = "ignora";
+    free(json);
+  }
+  return respuesta;
+}
+
+char *getUsername(int socket_fd){
+  char* username=NULL;
+  pthread_mutex_lock(&mutexUsuarios);
+  /* Iteramos el diccionario para buscar el usuario del socket */
+  Usuario *actual, *tmp;
+  HASH_ITER(hh, tablaUsuarios, actual, tmp){
+    if(actual->socket_fd==socket_fd){
+      username = actual->username;
+    }	  
+  }
+  pthread_mutex_unlock(&mutexUsuarios);
+  return username;
+}
+
 char *cambioEstado(cJSON *statusNodo, int socket_fd){
   char *estado= statusNodo->valuestring;
   /* Corroboramos si es algun estado permitido, regresamos NULL */
   if(strcmp(estado,"ACTIVE")==0 || strcmp(estado,"AWAY")==0 || strcmp(estado,"BUSY")==0){
     char *json=NULL;
     pthread_mutex_lock(&mutexUsuarios);
-    /* Iteramos el diccionario para buscar el usuario al que hay que cmabiar el estado */
+    /* Iteramos el diccionario para buscar el usuario al que hay que cambiar el estado */
     Usuario *actual, *tmp;
     HASH_ITER(hh, tablaUsuarios, actual, tmp) {
       if(actual->socket_fd==socket_fd){
@@ -69,11 +119,12 @@ char *cambioEstado(cJSON *statusNodo, int socket_fd){
 	  /* Actualizamos el estado y hacemos el json para enviarle a los demas usuarios */
 	  free(actual->estado);
 	  actual->estado = copia;
-	  json = crearJson("NEW_STATUS",NULL,NULL,NULL,actual->username,actual->estado);
+	  json = crearJson("NEW_STATUS",NULL,NULL,NULL,actual->username,actual->estado,NULL);
 	  break;
 	}
       }
     }
+    
     /* Si el json es null quiere decir que no encontramos el usuario al que se iba a cambiar de estado */
     if(json == NULL){
       pthread_mutex_unlock(&mutexUsuarios);
@@ -107,10 +158,24 @@ char *Identificar(cJSON *usernameNodo,int socket_fd){
   pthread_mutex_lock(&mutexUsuarios);
   /* Revizamos si el nombre del usuario esta ya en la lista */
   Usuario *encontrado = NULL;
-  /* HASH_FIND_STR(tablaUsuarios, identify->username, encontrado); */
   HASH_FIND_STR(tablaUsuarios, user, encontrado);
   char *respuesta;
   if(encontrado==NULL){
+
+    char* username=NULL;
+    
+    /* Iteramos el diccionario para buscar el usuario del socket */
+    Usuario *a, *t;
+    HASH_ITER(hh, tablaUsuarios, a, t){
+      if(a->socket_fd==socket_fd){
+	username = a->username;
+      }	  
+    }
+    /* Si encontramos un usuario con ese socket regresamos NULL pues dos usuarios estan con el mismo */
+    if(username!=NULL){
+      pthread_mutex_unlock(&mutexUsuarios);
+      return NULL;
+    }
     /* Creamos un nuevo usuario */
     Usuario *nuevo=newUsuario(user,socket_fd);
 
@@ -123,10 +188,10 @@ char *Identificar(cJSON *usernameNodo,int socket_fd){
     /* Agregamos a la lista de usuarios */
     HASH_ADD_STR(tablaUsuarios, username, nuevo);      
     /* Agregar a la lista */
-    respuesta=crearJson("RESPONSE","IDENTIFY","SUCCESS",user, NULL, NULL);
+    respuesta=crearJson("RESPONSE","IDENTIFY","SUCCESS",user, NULL, NULL,NULL);
 
     /* Iteramos la lista de usuarios para avisar que un nuevo usuario se conecto */
-    char *aviso = crearJson("NEW_USER",NULL,NULL,NULL,user,NULL);
+    char *aviso = crearJson("NEW_USER",NULL,NULL,NULL,user,NULL,NULL);
     Usuario *actual, *tmp;
     HASH_ITER(hh, tablaUsuarios, actual, tmp) {
       if(actual->socket_fd==socket_fd){
@@ -136,7 +201,7 @@ char *Identificar(cJSON *usernameNodo,int socket_fd){
     }
     free(aviso);
   } else{
-    respuesta=crearJson("RESPONSE","IDENTIFY","USER_ALREADY_EXISTS",user,NULL, NULL);
+    respuesta=crearJson("RESPONSE","IDENTIFY","USER_ALREADY_EXISTS",user,NULL, NULL,NULL);
   }
   pthread_mutex_unlock(&mutexUsuarios);
   /* free(identify); */

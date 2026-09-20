@@ -14,6 +14,16 @@ public class ConstruccionJson{
 	 return obj.ToJsonString()+"\n";
    }
    
+   public static string construirMensaje(){
+       	JsonObject obj = new JsonObject{
+	    ["type"] = "TEXT",
+	    ["username"] = "Luis",
+	    ["text"] = "hola" 
+	 };
+	 return obj.ToJsonString()+"\n";
+   
+   }
+   
    public static string construirCambioEstado(int opcion){
        string estado="";
        if(opcion ==1){

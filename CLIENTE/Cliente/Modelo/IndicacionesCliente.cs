@@ -14,6 +14,8 @@ public class IndicacionesCliente{
 	    return ConstruccionJson.construirCambioEstado(1);
 	 } else if(mensaje == "cambio estatus BUSY"){
 	    return ConstruccionJson.construirCambioEstado(3);
+	} else if(mensaje == "mensaje"){
+	    return ConstruccionJson.construirMensaje();
 	}
 	return null;
     }

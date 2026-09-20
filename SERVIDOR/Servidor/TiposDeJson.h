@@ -2,7 +2,7 @@
 #define TIPOSDEJSON_H
 #include "ListaDeUsuarios.h"
 
-char *crearJson(char *type, char *operation, char *result, char * extra, char * username, char *status);
+char *crearJson(char *type, char *operation, char *result, char * extra, char * username, char *status, char *text);
 
 char *stringListaUsuario();
 

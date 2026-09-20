@@ -23,8 +23,8 @@ void TestMensajeVacio(){
 }
 
 
-/* Prueba unitaria que reviza si se detecta los username duplicado */
-void TestNombreDuplicado(){
+/* Prueba unitaria que reviza si se detecta los socket duplicados */
+void TestSocketDuplicado(){
   /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
   /* separar los mensajes y regresar el json correspondiente*/
   char buffer[100]={0};
@@ -35,22 +35,52 @@ void TestNombreDuplicado(){
   bool desconexion = false;
   int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,2);
   assert(1==numeroMensajes);
-  /* Revisemos el contenido de lo guardado es que el usuario se pudo identificar bien */
-  assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\"Juan Gab\"}\n")==0);
-  
+  /* Revisemos el contenido de lo guardado es que el usuario no se pudo identificar y el servidor contesto error */
+  assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"INVALID\",\"result\":\"NOT_IDENTIFIED\"}\n")==0);
 
+  
   char buffer2[100]={0};
   char *inicioMensaje2=buffer2;
   char *mensajes2[50];
-  /* Mensaje con el mismo username ya registrado */
+  /* Nos identificamos desde un socket que no ha sido usado */
   strcpy(buffer2, "{\"type\":\"IDENTIFY\",\"username\":\"Juan Gabriel\"}\n");
   int bytesAcumulados2=strlen(buffer2);
   bool desconexion2 = false;
   int numeroMensajes2 = procesarBuffer(buffer2,&bytesAcumulados2,&inicioMensaje2,mensajes2,&desconexion2,3);
  
   assert(1==numeroMensajes2);
-  /* Revisemos el contenido de lo guardado dice que el username ya se uso*/ 
-  assert(strcmp(mensajes2[0],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"USER_ALREADY_EXISTS\",\"extra\":\"Juan Gab\"}\n")==0);
+  /* Ahora si podemos registrarnos con ese nombre*/ 
+  assert(strcmp(mensajes2[0],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\"Juan Gab\"}\n")==0);
+}
+
+void TestNombreDuplicado(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes y regresar el json correspondiente*/
+  char buffer[100]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  strcpy(buffer, "{\"type\":\"IDENTIFY\",\"username\":\"Luis Miguel\"}\n");
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,10);
+  assert(1==numeroMensajes);
+  /* Revisemos el contenido de lo guardado es que el usuario se pudo identificar bien */
+  assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\"Luis Mig\"}\n")==0);
+  
+  char buffer2[100]={0};
+  char *inicioMensaje2=buffer2;
+  char *mensajes2[50];
+  /* Repetimos el mismo username desde otro socket */
+  strcpy(buffer2, "{\"type\":\"IDENTIFY\",\"username\":\"Luis Miguel\"}\n");
+  int bytesAcumulados2=strlen(buffer2);
+  bool desconexion2 = false;
+  int numeroMensajes2 = procesarBuffer(buffer2,&bytesAcumulados2,&inicioMensaje2,mensajes2,&desconexion2,11);
+ 
+  assert(1==numeroMensajes2);
+  /* No podemos registrarnos con ese username */ 
+  assert(strcmp(mensajes2[0],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"USER_ALREADY_EXISTS\",\"extra\":\"Luis Mig\"}\n")==0);
+  
+  
 }
 
 /* Prueba unitaria que reviza si se se guarda un mensaje que aun no tiene \n */
@@ -148,4 +178,47 @@ void TestCambioEstatusRepetido(){
   assert(1==numeroMensajes);  
   /*Como no cumple con el protocolo vemos si regresa lo esperado en este caso */
   assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"INVALID\",\"result\":\"NOT_IDENTIFIED\"}\n")==0);
+}
+
+void TestMensajePrivado(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[100]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  /* Nos identificamos */
+  strcpy(buffer, "{\"type\":\"IDENTIFY\",\"username\":\"Ckan\"}\n");
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,5);
+  assert(1==numeroMensajes);
+  
+  char buffer2[1000]={0};
+  char *inicioMensaje2=buffer2;
+  char *mensajes2[50];
+  /* Nos identificamos desde otro coket y con otro nombre de usuario y mandamos un mensaje a otro ususario */
+  strcpy(buffer2, "{\"type\":\"IDENTIFY\",\"username\":\"Babo\"}\n{\"type\":\"TEXT\",\"username\":\"Ckan\",\"text\":\"Perra, soy el Babo, tú nada mas eres Ckan\"}");
+  int bytesAcumulados2=strlen(buffer2);
+  bool desconexion2 = false;
+  int numeroMensajes2 = procesarBuffer(buffer2,&bytesAcumulados2,&inicioMensaje2,mensajes2,&desconexion2,6);
+  /* Como enviar mensaje no regresa nada solo hay 1 mensaje */
+  assert(1==numeroMensajes2);
+  assert(strcmp(mensajes2[0],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\"Babo\"}\n")==0); 
+}
+
+void TestMensajeUsuarioNoEncontrado(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer2[1000]={0};
+  char *inicioMensaje2=buffer2;
+  char *mensajes2[50];
+  
+  strcpy(buffer2, "{\"type\":\"IDENTIFY\",\"username\":\"Alex\"}\n{\"type\":\"TEXT\",\"username\":\"ABCD\",\"text\":\"Perra, soy el Babo, tú nada mas eres Ckan\"}\n");
+  int bytesAcumulados2=strlen(buffer2);
+  bool desconexion2 = false;
+  int numeroMensajes2 = procesarBuffer(buffer2,&bytesAcumulados2,&inicioMensaje2,mensajes2,&desconexion2,7);
+  /* Ahora si debe haber dos mensajes, identificacion y usuario no encontrado */
+  assert(2==numeroMensajes2);
+  assert(strcmp(mensajes2[0],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\"Alex\"}\n")==0); 
+  assert(strcmp(mensajes2[1],"{\"type\":\"RESPONSE\",\"operation\":\"TEXT\",\"result\":\"NO_SUCH_USER\",\"extra\":\"ABCD\"}\n")==0);
 }

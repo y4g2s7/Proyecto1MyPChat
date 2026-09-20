@@ -4,12 +4,15 @@
 
 int main() {
   TestMensajeVacio();
+  TestSocketDuplicado();
   TestNombreDuplicado();
   TestMensajeSinSeparador();
   TestMensajeSinSeparadorCompletado();
   TestCambioEstatus();
   TestCambioEstatusNoAceptable();
   TestCambioEstatusRepetido();
+  TestMensajePrivado();
+  TestMensajeUsuarioNoEncontrado();
   return 0;
 }
 
