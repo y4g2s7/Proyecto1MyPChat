@@ -69,7 +69,7 @@ char *cambioEstado(cJSON *statusNodo, int socket_fd){
 	  /* Actualizamos el estado y hacemos el json para enviarle a los demas usuarios */
 	  free(actual->estado);
 	  actual->estado = copia;
-	  json = avisoCambioEstado(actual);
+	  json = crearJson("NEW_STATUS",NULL,NULL,NULL,actual->username,actual->estado);
 	  break;
 	}
       }
@@ -97,31 +97,36 @@ char *cambioEstado(cJSON *statusNodo, int socket_fd){
 char *Identificar(cJSON *usernameNodo,int socket_fd){
   char user[9];
   strncpy(user,usernameNodo->valuestring,9);
+
+  if(user[0]=='\0'){
+    return NULL;
+  }
   user[8]='\0';
-  MIdentify *identify = newIdentify(user);
+  /* MIdentify *identify = newIdentify(user); */
   
   pthread_mutex_lock(&mutexUsuarios);
   /* Revizamos si el nombre del usuario esta ya en la lista */
   Usuario *encontrado = NULL;
-  HASH_FIND_STR(tablaUsuarios, identify->username, encontrado);
-  
+  /* HASH_FIND_STR(tablaUsuarios, identify->username, encontrado); */
+  HASH_FIND_STR(tablaUsuarios, user, encontrado);
   char *respuesta;
   if(encontrado==NULL){
     /* Creamos un nuevo usuario */
-    Usuario *nuevo=newUsuario(identify->username,socket_fd);
+    Usuario *nuevo=newUsuario(user,socket_fd);
 
+    /* Verificacion de memoria */
     if(nuevo == NULL){
       pthread_mutex_unlock(&mutexUsuarios);
-      free(identify);
+      /* free(identify); */
       return NULL;
     }
     /* Agregamos a la lista de usuarios */
     HASH_ADD_STR(tablaUsuarios, username, nuevo);      
     /* Agregar a la lista */
-    respuesta=agregarUsuario(identify);
+    respuesta=crearJson("RESPONSE","IDENTIFY","SUCCESS",user, NULL, NULL);
 
     /* Iteramos la lista de usuarios para avisar que un nuevo usuario se conecto */
-    char *aviso = avisoNuevoUsuario(identify);
+    char *aviso = crearJson("NEW_USER",NULL,NULL,NULL,user,NULL);
     Usuario *actual, *tmp;
     HASH_ITER(hh, tablaUsuarios, actual, tmp) {
       if(actual->socket_fd==socket_fd){
@@ -131,10 +136,10 @@ char *Identificar(cJSON *usernameNodo,int socket_fd){
     }
     free(aviso);
   } else{
-    respuesta=usuarioExistente(identify);
+    respuesta=crearJson("RESPONSE","IDENTIFY","USER_ALREADY_EXISTS",user,NULL, NULL);
   }
   pthread_mutex_unlock(&mutexUsuarios);
-  free(identify);
+  /* free(identify); */
   return respuesta;
   
 }

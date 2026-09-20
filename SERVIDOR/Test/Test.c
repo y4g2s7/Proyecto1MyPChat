@@ -4,8 +4,12 @@
 
 int main() {
   TestMensajeVacio();
+  TestNombreDuplicado();
   TestMensajeSinSeparador();
   TestMensajeSinSeparadorCompletado();
+  TestCambioEstatus();
+  TestCambioEstatusNoAceptable();
+  TestCambioEstatusRepetido();
   return 0;
 }
 

@@ -116,9 +116,8 @@ public class SocketCliente{
 	    String? usuario=Console.ReadLine();
 	
 	    //Verificacion de que el nombre que puso el usuario no es null
-	    if(usuario == null){
-		Console.WriteLine("Error tienes que escribir un nombre");
-		return;
+	    if(usuario == null || usuario.Length == 0){
+		continue;
 	    }
 
 	    if (usuario.Length > 8) {
@@ -152,7 +151,7 @@ public class SocketCliente{
 
 	    if(terminado) break;
 	    
-	    if(peticion == null){
+	    if(peticion == null || peticion.Length==0){
 		Console.WriteLine("Error tienes que escribir algo");
 		continue;
 	    }
