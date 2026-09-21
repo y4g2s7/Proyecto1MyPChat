@@ -3,7 +3,7 @@ public class ConstruccionJson{
     public static string construirIdentificacion(){
 	JsonObject obj = new JsonObject{
 	    ["type"] = "IDENTIFY",
-	    ["username"] = IndicacionesCliente.usuario
+	    ["username"] = SocketCliente.usuario
 	 };
 	 return obj.ToJsonString()+"\n";
    }
