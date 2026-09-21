@@ -28,4 +28,14 @@ public class VistaConsola{
     public static String? leerPeticion(){
 	return Console.ReadLine();
     }
+
+    public static String? leerUsuario(){
+	Console.WriteLine("Escribe a quien le quieres mandar el mensaje");
+	return Console.ReadLine();
+    }
+
+    public static String? leerMensaje(){
+	Console.WriteLine("Escribe el mensaje");
+	return Console.ReadLine();
+    }
 }

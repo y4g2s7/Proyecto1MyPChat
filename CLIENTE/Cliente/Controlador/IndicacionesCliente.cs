@@ -3,17 +3,22 @@ public class IndicacionesCliente{
         if(mensaje=="salir"){
 	    return "exit\n";
 	}else if(mensaje =="conectarse"){
-	    return ConstruccionJson.construirIdentificacion();
+	    return ConstruccionJson.construirJson("IDENTIFY", SocketCliente.usuario, null, null);
 	} else if(mensaje == "lista"){
-	    return ConstruccionJson.construirPeticionLista();
+	    return ConstruccionJson.construirJson("USERS", null, null, null);
 	} else if(mensaje == "cambio estatus AWAY"){
-	    return ConstruccionJson.construirCambioEstado(2);
+	    return ConstruccionJson.construirJson("STATUS",null,null,"AWAY");
 	} else if(mensaje == "cambio estatus ACTIVE"){
-	    return ConstruccionJson.construirCambioEstado(1);
+	    return ConstruccionJson.construirJson("STATUS",null,null,"ACTIVE");
 	 } else if(mensaje == "cambio estatus BUSY"){
-	    return ConstruccionJson.construirCambioEstado(3);
+	    return ConstruccionJson.construirJson("STATUS",null,null,"BUSY");
 	} else if(mensaje == "mensaje"){
-	    return ConstruccionJson.construirMensaje();
+	    string? username = VistaConsola.leerUsuario();
+	    if(username == null || username.Length ==0) return null;
+	    string? text = VistaConsola.leerMensaje();
+	    if(text == null || text.Length ==0)return null;
+	    return ConstruccionJson.construirJson("TEXT",username, text, null);
+	    
 	}
 	return null;
     }
