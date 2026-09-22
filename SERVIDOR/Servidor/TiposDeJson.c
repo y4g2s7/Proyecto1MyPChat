@@ -3,42 +3,17 @@
 #include "TiposDeJson.h"
 #include <cjson/cJSON.h>
 
-/* Estructura para trabajar con la creacion de un nuevo nombre de usuario */
-MIdentify *newIdentify(char username[9]){
-  MIdentify *identify = malloc(sizeof(MIdentify));  
-  if(identify == NULL) return NULL;
-  strncpy(identify->username,username,sizeof(identify->username));
-  return identify;
-}
-
-char *agregarUsuario(MIdentify *midentify){
+char *crearJson(char *type, char *operation, char *result, char * extra, char * username, char *status, char *text){
   cJSON *respuesta = cJSON_CreateObject();
-  cJSON_AddStringToObject(respuesta, "type", "RESPONSE");
-  cJSON_AddStringToObject(respuesta, "operation", "IDENTIFY");
-  cJSON_AddStringToObject(respuesta, "result", "SUCCESS");
-  cJSON_AddStringToObject(respuesta, "extra", midentify->username);
-  char *StringRespuesta= cJSON_PrintUnformatted(respuesta);
-  cJSON_Delete(respuesta);
-  agregarSaltoLinea(&StringRespuesta);
-  return StringRespuesta;
-}
-
-char *usuarioExistente(MIdentify *midentify){
-  cJSON *respuesta = cJSON_CreateObject();
-  cJSON_AddStringToObject(respuesta, "type", "RESPONSE");
-  cJSON_AddStringToObject(respuesta, "operation", "IDENTIFY");
-  cJSON_AddStringToObject(respuesta, "result", "USER_ALREADY_EXISTS");
-  cJSON_AddStringToObject(respuesta, "extra", midentify->username);
-  char *StringRespuesta= cJSON_PrintUnformatted(respuesta);
-  cJSON_Delete(respuesta);
-  agregarSaltoLinea(&StringRespuesta);
-  return StringRespuesta;
-}
-
-char *avisoNuevoUsuario(MIdentify *midentify){
-  cJSON *respuesta = cJSON_CreateObject();
-  cJSON_AddStringToObject(respuesta, "type", "NEW_USER");
-  cJSON_AddStringToObject(respuesta, "username", midentify->username);
+  
+  if(type) cJSON_AddStringToObject(respuesta, "type", type);
+  if(operation) cJSON_AddStringToObject(respuesta, "operation", operation);
+  if(result) cJSON_AddStringToObject(respuesta, "result", result);
+  if(extra) cJSON_AddStringToObject(respuesta, "extra", extra);
+  if(username) cJSON_AddStringToObject(respuesta, "username", username);
+  if(status) cJSON_AddStringToObject(respuesta, "status", status);
+  if(text) cJSON_AddStringToObject(respuesta, "text", text);
+  
   char *StringRespuesta= cJSON_PrintUnformatted(respuesta);
   cJSON_Delete(respuesta);
   agregarSaltoLinea(&StringRespuesta);
@@ -63,16 +38,6 @@ char *stringListaUsuario(){
   return StringRespuesta;
 }
 
-char *avisoCambioEstado(Usuario *usuario){
-  cJSON *respuesta = cJSON_CreateObject();
-  cJSON_AddStringToObject(respuesta, "type", "NEW_STATUS");
-  cJSON_AddStringToObject(respuesta, "username", usuario->username);
-  cJSON_AddStringToObject(respuesta, "status", usuario->estado);
-  char *StringRespuesta= cJSON_PrintUnformatted(respuesta);
-  cJSON_Delete(respuesta);
-  agregarSaltoLinea(&StringRespuesta);
-  return StringRespuesta;
-}
 
 /* Funcion que agrega el salto de linea para enviar al cliente y el \0 para marcar el limite en C */
 void agregarSaltoLinea(char **mensaje){

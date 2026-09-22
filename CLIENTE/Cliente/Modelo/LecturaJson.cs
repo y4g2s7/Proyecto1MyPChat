@@ -5,7 +5,7 @@ public class LecturaJson{
         return nodo["type"]?.GetValue<string>()      == "RESPONSE"
             && nodo["operation"]?.GetValue<string>() == "IDENTIFY"
             && nodo["result"]?.GetValue<string>()    == "SUCCESS"
-            && nodo["extra"]?.GetValue<string>()     == IndicacionesCliente.usuario;
+            && nodo["extra"]?.GetValue<string>()     == SocketCliente.usuario;
     }
 
     public static bool esNombreUsado(JsonNode? nodo){
@@ -13,7 +13,7 @@ public class LecturaJson{
 	return nodo["type"]?.GetValue<string>()      == "RESPONSE"
             && nodo["operation"]?.GetValue<string>() == "IDENTIFY"
             && nodo["result"]?.GetValue<string>()    == "USER_ALREADY_EXISTS"
-            && nodo["extra"]?.GetValue<string>()     == IndicacionesCliente.usuario;
+            && nodo["extra"]?.GetValue<string>()     == SocketCliente.usuario;
     }
 
     public static bool noEntendido(JsonNode? nodo){
