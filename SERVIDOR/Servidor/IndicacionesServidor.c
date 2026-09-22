@@ -6,8 +6,9 @@
 #include "IndicacionesServidor.h"
 #include <pthread.h>
 #include <unistd.h>
+#include "SocketServidor.h"
 
-char *traduccionJSON(char *mensaje, int socket_fd){
+char *traduccionJSON(char *mensaje, int socket_fd, bool *identificacion){
   /* Vemos si lo que nos enviaron es JSON */
   cJSON *raiz = cJSON_Parse(mensaje);
   if(raiz == NULL){
@@ -30,7 +31,7 @@ char *traduccionJSON(char *mensaje, int socket_fd){
       goto cleanup;
     }
     /* Mandamos a llamar a Identificar que verifica la situacion del nombre de usuario */
-    respuesta = Identificar(usernameNodo,socket_fd);
+    respuesta = Identificar(usernameNodo,socket_fd,identificacion);
   } else if(strcmp(tipoTexto,"USERS")==0){
     respuesta=stringListaUsuario();
   } else if(strcmp(tipoTexto, "STATUS")==0){
@@ -49,10 +50,37 @@ char *traduccionJSON(char *mensaje, int socket_fd){
       goto cleanup;
     }
     respuesta = mensajePrivado(destinatarioNodo,mensajeNodo,socket_fd);
+  } else if(strcmp(tipoTexto, "PUBLIC_TEXT")==0){
+    
+    cJSON *mensajePublicoNodo = cJSON_GetObjectItem(raiz, "text");
+    if(mensajePublicoNodo==NULL || !cJSON_IsString(mensajePublicoNodo)){
+      goto cleanup;
+    }
+    respuesta = mensajePublico(mensajePublicoNodo,socket_fd);
   }
  cleanup:
   cJSON_Delete(raiz);
   return respuesta;
+}
+
+char *mensajePublico(cJSON *mensajePublicoNodo, int socket_fd){
+  char *respuesta;
+  char *mensaje = mensajePublicoNodo->valuestring;
+  if(mensaje[0]=='\0'){
+    return NULL;
+  }
+  char* remitente = getUsername(socket_fd);
+  char *json = crearJson("PUBLIC_TEXT",NULL,NULL,NULL,remitente,NULL,mensaje);
+  pthread_mutex_lock(&mutexUsuarios);
+  Usuario *act, *tm;
+    HASH_ITER(hh, tablaUsuarios, act, tm) {
+      if(act->socket_fd!=socket_fd){
+	escribirCompleto(act->socket_fd, json, strlen(json));   
+      }
+    }
+  pthread_mutex_unlock(&mutexUsuarios);
+  free(json);
+  return respuesta = "ignora"; 
 }
 
 char *mensajePrivado(cJSON *destinatarioNodo, cJSON *mensajeNodo, int socket_fd){
@@ -61,6 +89,7 @@ char *mensajePrivado(cJSON *destinatarioNodo, cJSON *mensajeNodo, int socket_fd)
   char *mensaje = mensajeNodo->valuestring;
   if(mensaje[0]=='\0'){
     return NULL;
+    
   }
   
   pthread_mutex_lock(&mutexUsuarios);
@@ -74,7 +103,8 @@ char *mensajePrivado(cJSON *destinatarioNodo, cJSON *mensajeNodo, int socket_fd)
   } else{
     char *remitente = getUsername(socket_fd);
     char *json = crearJson("TEXT_FROM",NULL,NULL,NULL,remitente,NULL,mensaje);
-    write(encontrado->socket_fd, json, strlen(json));
+    
+    escribirCompleto(encontrado->socket_fd, json, strlen(json));
     respuesta = "ignora";
     free(json);
   }
@@ -135,7 +165,8 @@ char *cambioEstado(cJSON *statusNodo, int socket_fd){
     Usuario *act, *tm;
     HASH_ITER(hh, tablaUsuarios, act, tm) {
       if(act->socket_fd!=socket_fd){
-	write(act->socket_fd, json, strlen(json));
+	escribirCompleto(act->socket_fd, json, strlen(json));
+        
       }
     }
     pthread_mutex_unlock(&mutexUsuarios);
@@ -145,7 +176,8 @@ char *cambioEstado(cJSON *statusNodo, int socket_fd){
   } return NULL;
 }
  
-char *Identificar(cJSON *usernameNodo,int socket_fd){
+char *Identificar(cJSON *usernameNodo,int socket_fd, bool *identificacion){
+  if(*identificacion) return NULL;
   char user[9];
   strncpy(user,usernameNodo->valuestring,9);
 
@@ -185,9 +217,12 @@ char *Identificar(cJSON *usernameNodo,int socket_fd){
       /* free(identify); */
       return NULL;
     }
+    /* Actualizamos que ya hubo una identificacion correcta  */
+    *identificacion = true;
     /* Agregamos a la lista de usuarios */
     HASH_ADD_STR(tablaUsuarios, username, nuevo);      
     /* Agregar a la lista */
+    
     respuesta=crearJson("RESPONSE","IDENTIFY","SUCCESS",user, NULL, NULL,NULL);
 
     /* Iteramos la lista de usuarios para avisar que un nuevo usuario se conecto */
@@ -197,7 +232,8 @@ char *Identificar(cJSON *usernameNodo,int socket_fd){
       if(actual->socket_fd==socket_fd){
 	continue;
       }
-      write(actual->socket_fd, aviso, strlen(aviso));
+      escribirCompleto(actual->socket_fd, aviso, strlen(aviso));
+      
     }
     free(aviso);
   } else{
