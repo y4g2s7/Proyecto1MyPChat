@@ -1,4 +1,4 @@
-#ifndef LISTADEUSUSARIOS_H  
+#ifndef LISTADEUSUARIOS_H  
 #define LISTADEUSUARIOS_H
 #include <uthash.h>
 #include <pthread.h>
@@ -14,7 +14,7 @@ typedef struct {
   /* el campo especial que uthash necesita */
   UT_hash_handle hh;       
 } Usuario;
-
+ 
 extern Usuario *tablaUsuarios;
 extern pthread_mutex_t mutexUsuarios;
 Usuario *newUsuario(char username[9],int socket_fd);

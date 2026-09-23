@@ -3,7 +3,7 @@
 #include "TiposDeJson.h"
 #include <cjson/cJSON.h>
 
-char *crearJson(char *type, char *operation, char *result, char * extra, char * username, char *status, char *text){
+char *crearJson(char *type, char *operation, char *result, char * extra, char * username, char *status, char *text, char *roomname){
   cJSON *respuesta = cJSON_CreateObject();
   
   if(type) cJSON_AddStringToObject(respuesta, "type", type);
@@ -13,6 +13,7 @@ char *crearJson(char *type, char *operation, char *result, char * extra, char * 
   if(username) cJSON_AddStringToObject(respuesta, "username", username);
   if(status) cJSON_AddStringToObject(respuesta, "status", status);
   if(text) cJSON_AddStringToObject(respuesta, "text", text);
+  if(roomname) cJSON_AddStringToObject(respuesta, "roomname", roomname);
   
   char *StringRespuesta= cJSON_PrintUnformatted(respuesta);
   cJSON_Delete(respuesta);

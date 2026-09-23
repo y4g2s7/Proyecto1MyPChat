@@ -186,14 +186,14 @@ int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, cha
     char buscar[] = "USER_ALREADY_EXISTS";
 
     if((*identificacion == false) && (strstr(respuesta, buscar) == NULL)){
-      respuesta = crearJson("RESPONSE","INVALID","NOT_IDENTIFIED",NULL,NULL,NULL,NULL);
+      respuesta = crearJson("RESPONSE","INVALID","NOT_IDENTIFIED",NULL,NULL,NULL,NULL,NULL);
       *desconexion = true;
       if(respuesta==NULL) break;
     }
     /* Si el cliente le manda algo al sevidor que no puede decifrar
        le decimos al usuario y volvemos a esperar respuesta*/
     if(respuesta == NULL){
-      respuesta = crearJson("RESPONSE","INVALID","INVALID",NULL,NULL,NULL,NULL);
+      respuesta = crearJson("RESPONSE","INVALID","INVALID",NULL,NULL,NULL,NULL,NULL);
       *desconexion = true;
       if(respuesta==NULL) break;
     }

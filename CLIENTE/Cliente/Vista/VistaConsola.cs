@@ -38,4 +38,9 @@ public class VistaConsola{
 	Console.WriteLine("Escribe el mensaje");
 	return Console.ReadLine();
     }
+
+    public static String? leerSala(){
+	Console.WriteLine("Escribe el nombre de la sala");
+	return Console.ReadLine();
+    }
 }
