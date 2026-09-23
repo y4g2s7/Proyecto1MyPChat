@@ -236,3 +236,87 @@ void TestMensajeUsuarioNoEncontrado(){
   assert(strcmp(mensajes2[0],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\"Alex\"}\n")==0); 
   assert(strcmp(mensajes2[1],"{\"type\":\"RESPONSE\",\"operation\":\"TEXT\",\"result\":\"NO_SUCH_USER\",\"extra\":\"ABCD\"}\n")==0);
 }
+
+void TestCreacionSala(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion =false;
+  strcpy(buffer, "{\"type\":\"IDENTIFY\",\"username\":\"hanna\"}\n{\"type\":\"NEW_ROOM\",\"roomname\":\"Sala 1\"}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,15,&identificacion);
+  assert(2==numeroMensajes);
+  assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\"hanna\"}\n")==0); 
+  assert(strcmp(mensajes[1],"{\"type\":\"RESPONSE\",\"operation\":\"NEW_ROOM\",\"result\":\"SUCCESS\",\"extra\":\"Sala 1\"}\n")==0);
+}
+
+void TestSalaRepetida(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion =false;
+  strcpy(buffer, "{\"type\":\"IDENTIFY\",\"username\":\"kennya\"}\n{\"type\":\"NEW_ROOM\",\"roomname\":\"Sala 1\"}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
+  assert(2==numeroMensajes);
+  assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\"kennya\"}\n")==0); 
+  assert(strcmp(mensajes[1],"{\"type\":\"RESPONSE\",\"operation\":\"NEW_ROOM\",\"result\":\"ROOM_ALREADY_EXISTS\",\"extra\":\"Sala 1\"}\n")==0);
+}
+
+void TestInvitacionSala(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion = true;
+  strcpy(buffer, "{\"type\":\"INVITE\",\"roomname\":\"Sala 1\",\"usernames\":[\"hanna\",\"Babo\"]}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
+  /* printf("%s\n",mensajes[0]); */
+  assert(0==numeroMensajes);
+}
+
+void TestInvitacionSalaInexistente(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion = true;
+  strcpy(buffer, "{\"type\":\"INVITE\",\"roomname\":\"Sala 2\",\"usernames\":[\"hanna\",\"Babo\"]}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
+  /* printf("%s\n",mensajes[0]); */
+  assert(1==numeroMensajes);
+  assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"INVITE\",\"result\":\"NO_SUCH_ROOM\",\"extra\":\"Sala 2\"}\n")==0);
+}
+
+void TestInvitacionSalaUsuarioInexistente(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion = true;
+  strcpy(buffer, "{\"type\":\"INVITE\",\"roomname\":\"Sala 1\",\"usernames\":[\"gelen\",\"Babo\"]}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
+  /* printf("%s\n",mensajes[0]); */
+  assert(1==numeroMensajes);
+  assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"INVITE\",\"result\":\"NO_SUCH_USER\",\"extra\":\"gelen\"}\n")==0);
+}

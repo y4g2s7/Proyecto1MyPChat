@@ -70,7 +70,7 @@ char *traduccionJSON(char *mensaje, int socket_fd, bool *identificacion){
       goto cleanup;
     }
     cJSON *usuariosNodo = cJSON_GetObjectItem(raiz, "usernames");
-    if(usuariosNodo==NULL || !cJSON_IsString(usuariosNodo)){
+    if(usuariosNodo==NULL || !cJSON_IsArray(usuariosNodo)){
       goto cleanup;
     }
     respuesta =invitarSala(nombreSalaNodo,usuariosNodo,socket_fd);
@@ -204,6 +204,7 @@ char *mensajePrivado(cJSON *destinatarioNodo, cJSON *mensajeNodo, int socket_fd)
   
   if(encontrado ==NULL){
     respuesta = crearJson("RESPONSE","TEXT","NO_SUCH_USER", destinatario, NULL, NULL,NULL,NULL);
+    pthread_mutex_unlock(&mutexUsuarios);
   } else{
     
     char *json = crearJson("TEXT_FROM",NULL,NULL,NULL,remitente,NULL,mensaje,NULL);

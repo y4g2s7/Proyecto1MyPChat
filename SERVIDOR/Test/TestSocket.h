@@ -10,4 +10,10 @@ void TestCambioEstatusNoAceptable();
 void TestCambioEstatusRepetido();
 void TestMensajePrivado();
 void TestMensajeUsuarioNoEncontrado();
+void TestCreacionSala();
+void TestSalaRepetida();
+void TestInvitacionSala();
+void TestInvitacionSalaInexistente();
+void TestInvitacionSalaUsuarioInexistente();
 #endif
+

@@ -13,6 +13,13 @@ int main() {
   TestCambioEstatusRepetido();
   TestMensajePrivado();
   TestMensajeUsuarioNoEncontrado();
+  TestCreacionSala();
+  TestSalaRepetida();
+  TestInvitacionSala();
+  TestInvitacionSalaInexistente();
+  TestInvitacionSalaUsuarioInexistente();
   return 0;
+
+  
 }
 
