@@ -278,12 +278,12 @@ void TestInvitacionSala(){
   char *inicioMensaje=buffer;
   char *mensajes[50];
   bool identificacion = true;
-  strcpy(buffer, "{\"type\":\"INVITE\",\"roomname\":\"Sala 1\",\"usernames\":[\"hanna\",\"Babo\"]}\n");
+  strcpy(buffer, "{\"type\":\"INVITE\",\"roomname\":\"Sala 1\",\"usernames\":[\"kennya\",\"Babo\"]}\n");
   
   int bytesAcumulados=strlen(buffer);
   bool desconexion = false;
-  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
-  /* printf("%s\n",mensajes[0]); */
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,15,&identificacion);
+  printf("%s\n",mensajes[0]);
   assert(0==numeroMensajes);
 }
 
@@ -315,7 +315,7 @@ void TestInvitacionSalaUsuarioInexistente(){
   
   int bytesAcumulados=strlen(buffer);
   bool desconexion = false;
-  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,15,&identificacion);
   /* printf("%s\n",mensajes[0]); */
   assert(1==numeroMensajes);
   assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"INVITE\",\"result\":\"NO_SUCH_USER\",\"extra\":\"gelen\"}\n")==0);

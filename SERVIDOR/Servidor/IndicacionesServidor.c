@@ -33,6 +33,9 @@ char *traduccionJSON(char *mensaje, int socket_fd, bool *identificacion){
     }
     /* Mandamos a llamar a Identificar que verifica la situacion del nombre de usuario */
     respuesta = Identificar(usernameNodo,socket_fd,identificacion);
+  } else if(!(*identificacion)){
+     /* cualquier otro tipo de mensaje requiere estar identificado primero */
+    respuesta = crearJson("RESPONSE","INVALID","NOT_IDENTIFIED",NULL,NULL,NULL,NULL,NULL);
   } else if(strcmp(tipoTexto,"USERS")==0){
     respuesta=stringListaUsuario();
   } else if(strcmp(tipoTexto, "STATUS")==0){
@@ -91,20 +94,31 @@ char *traduccionJSON(char *mensaje, int socket_fd, bool *identificacion){
   
   char *invitador=getUsername(socket_fd);
  pthread_mutex_lock(&mutexSalas);
-  Sala *encontrado = NULL;
-  HASH_FIND_STR(tablaSalas, nombre, encontrado);
+  Sala *salaEncontrada = NULL;
+  HASH_FIND_STR(tablaSalas, nombre, salaEncontrada);
   char *respuesta;
-  if(encontrado ==NULL){
+  if(salaEncontrada ==NULL){
     respuesta = crearJson("RESPONSE", "INVITE", "NO_SUCH_ROOM",nombre,NULL,NULL,NULL,NULL);
     
   } else{
+    pthread_mutex_lock(&salaEncontrada->mutexUsuariosSala);
+    MiembroSala *miembroEncontrado = NULL;
+    HASH_FIND_STR(salaEncontrada->tablaUsuariosSala,invitador,miembroEncontrado);
+
+    if(miembroEncontrado==NULL){
+      pthread_mutex_unlock(&salaEncontrada->mutexUsuariosSala);
+      return NULL;
+    }
+    
+    pthread_mutex_unlock(&salaEncontrada->mutexUsuariosSala);
+    
     pthread_mutex_lock(&mutexUsuarios);
     cJSON *elemento = NULL;
     cJSON_ArrayForEach(elemento, usuariosNodo) {
-
-      Usuario *encontrado = NULL;
-      HASH_FIND_STR(tablaUsuarios,elemento->valuestring,encontrado);
-      if(encontrado==NULL){
+      
+      Usuario *UsuarioEncontrado = NULL;
+      HASH_FIND_STR(tablaUsuarios,elemento->valuestring,UsuarioEncontrado);
+      if(UsuarioEncontrado==NULL){
 	respuesta = crearJson("RESPONSE", "INVITE", "NO_SUCH_USER",elemento->valuestring,NULL,NULL,NULL,NULL);
 	pthread_mutex_unlock(&mutexUsuarios);
 	pthread_mutex_unlock(&mutexSalas);
@@ -119,7 +133,23 @@ char *traduccionJSON(char *mensaje, int socket_fd, bool *identificacion){
     cJSON_ArrayForEach(elemento2, usuariosNodo) {
       Usuario *encontrado2 = NULL;
       HASH_FIND_STR(tablaUsuarios,elemento2->valuestring,encontrado2);
-      escribirCompleto(encontrado2->socket_fd,mensaje,strlen(mensaje));
+
+      pthread_mutex_lock(&salaEncontrada->mutexUsuariosSala);
+      Invitacion *invEncontrada = NULL;
+      HASH_FIND_STR(salaEncontrada->tablaInvitados,elemento2->valuestring,invEncontrada);
+      if(invEncontrada == NULL){
+	Invitacion *inv = malloc(sizeof(Invitacion));
+	strncpy(inv->username, elemento2->valuestring, sizeof(inv->username));
+	inv->username[8] = '\0';
+
+	
+	HASH_ADD_STR(salaEncontrada->tablaInvitados, username, inv);
+	pthread_mutex_unlock(&salaEncontrada->mutexUsuariosSala);
+	
+	
+	escribirCompleto(encontrado2->socket_fd,mensaje,strlen(mensaje));
+      }
+      pthread_mutex_unlock(&salaEncontrada->mutexUsuariosSala);
     }
     pthread_mutex_unlock(&mutexUsuarios);
     free(mensaje);
@@ -153,13 +183,27 @@ char *sala(cJSON *nombreSalaNodo, int socket_fd){
     respuesta = crearJson("RESPONSE", "NEW_ROOM", "SUCCESS",nombre,NULL,NULL,NULL,NULL);
     char *username = getUsername(socket_fd);
     
-    pthread_mutex_lock(&s->mutexUsuariosSala);
+    pthread_mutex_lock(&mutexUsuarios);
+    Usuario *encontrado = NULL;
+    HASH_FIND_STR(tablaUsuarios, username, encontrado);
     
-    Usuario *nuevo = newUsuario(username,socket_fd);
+    if (encontrado != NULL) {
+
+      MiembroSala *ms = newMiembroSala(username,encontrado);
+      if(ms == NULL){
+	pthread_mutex_unlock(&mutexUsuarios);
+	pthread_mutex_unlock(&mutexSalas);
+	free(respuesta);
+	return NULL;
+      }
+      pthread_mutex_lock(&s->mutexUsuariosSala);
+      
+      HASH_ADD_STR(s->tablaUsuariosSala, username, ms);
+      
+      pthread_mutex_unlock(&s->mutexUsuariosSala);
+    }
+    pthread_mutex_unlock(&mutexUsuarios);
     
-    HASH_ADD_STR(s->tablaUsuariosSala, username, nuevo);
-    
-    pthread_mutex_unlock(&s->mutexUsuariosSala);
   } else{
     respuesta = crearJson("RESPONSE", "NEW_ROOM", "ROOM_ALREADY_EXISTS",nombre,NULL,NULL,NULL,NULL);
   }

@@ -30,6 +30,7 @@ public class VistaConsola{
     }
 
     public static String? leerUsuario(){
+	
 	Console.WriteLine("Escribe a quien le quieres mandar el mensaje");
 	return Console.ReadLine();
     }
@@ -41,6 +42,20 @@ public class VistaConsola{
 
     public static String? leerSala(){
 	Console.WriteLine("Escribe el nombre de la sala");
+	return Console.ReadLine();
+    }
+
+    public static String? leerInvitacion(){
+	Console.WriteLine("Escribe el nombre de la sala de la que quieres invitar");
+	return Console.ReadLine();
+    }
+    
+    public static String? leerUsuarioInvitacion(){
+	Console.WriteLine("Escribe a quienes quieres invitar separados por ','");
+	return Console.ReadLine();
+    }
+    public static String? leerSalaUnirse(){
+	Console.WriteLine("Escribe el nombre de la sala a la que te quieres unir");
 	return Console.ReadLine();
     }
 }

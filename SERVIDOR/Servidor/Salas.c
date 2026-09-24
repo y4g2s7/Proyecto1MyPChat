@@ -13,11 +13,25 @@ Sala *newSala(char nombre[17]){
   }
   strncpy(nueva->nombre,nombre,sizeof(nueva->nombre));
   nueva->nombre[16]='\0';
-  Usuario *tablaUsuariosSala = NULL;
-  
+  MiembroSala *tablaUsuariosSala = NULL;
+
   nueva->tablaUsuariosSala=tablaUsuariosSala;
   
+  Invitacion *tablaInvitados = NULL;
+    
+  nueva->tablaInvitados=tablaInvitados;
   pthread_mutex_init(&nueva->mutexUsuariosSala, NULL);
 
  return nueva;
-} 
+}
+
+MiembroSala *newMiembroSala(char username[9], Usuario *usuario){
+  MiembroSala *nuevo = malloc(sizeof(MiembroSala)); 
+  if(nuevo == NULL){                                                        
+    return NULL;                                                            
+  }
+  strncpy(nuevo->username,username,sizeof(nuevo->username));
+  nuevo->username[8]='\0';
+  nuevo->usuario = usuario;
+  return nuevo;
+}
