@@ -22,4 +22,10 @@ public class LecturaJson{
             && nodo["operation"]?.GetValue<string>() == "INVALID"
             && nodo["result"]?.GetValue<string>()    == "NOT_IDENTIFIED";
     }
+
+    public static bool esRespuestaDeIdentify(JsonNode? nodo){
+    if (nodo == null) return false;
+    return nodo["type"]?.GetValue<string>()      == "RESPONSE"
+        && nodo["operation"]?.GetValue<string>() == "IDENTIFY";
+    }
 }

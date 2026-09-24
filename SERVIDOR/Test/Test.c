@@ -18,6 +18,9 @@ int main() {
   TestInvitacionSala();
   TestInvitacionSalaInexistente();
   TestInvitacionSalaUsuarioInexistente();
+  TestIngresaSala();
+  TestIngresaInexistente();
+  TestIngresaSinInvitacion();
   return 0;
 
   

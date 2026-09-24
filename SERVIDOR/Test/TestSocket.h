@@ -15,5 +15,8 @@ void TestSalaRepetida();
 void TestInvitacionSala();
 void TestInvitacionSalaInexistente();
 void TestInvitacionSalaUsuarioInexistente();
+void TestIngresaSala();
+void TestIngresaInexistente();
+void TestIngresaSinInvitacion();
 #endif
 

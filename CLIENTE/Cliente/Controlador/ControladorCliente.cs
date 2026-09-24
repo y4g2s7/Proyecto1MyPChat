@@ -85,9 +85,12 @@ public class ControladorCliente{
 	} else if(LecturaJson.esIdentificacionExitosa(respuesta)){
 	    // Actualizamos la variable para decir que ya se hizo el registro
 	    SocketCliente.identificacionCompletada = true;   
-	}
-	//Despierta al hilo de escritura
-	respuestaIdentificacion.Set();
+	    //Despierta al hilo de escritura
+	    respuestaIdentificacion.Set();
+	} else if(LecturaJson.esRespuestaDeIdentify(respuesta)){
+	    respuestaIdentificacion.Set();
+    } 
+	
     }
 
     static void fEscribe(){

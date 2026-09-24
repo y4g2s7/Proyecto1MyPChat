@@ -40,6 +40,27 @@ char *stringListaUsuario(){
 }
 
 
+char *stringListaUsuarioSala(Sala *salaEncontrada){
+  cJSON *respuesta = cJSON_CreateObject();
+  cJSON *usuarios = cJSON_CreateObject();
+
+  cJSON_AddStringToObject(respuesta, "type", "ROOM_USER_LIST");
+  cJSON_AddStringToObject(respuesta, "roomname", salaEncontrada->nombre);
+  
+  pthread_mutex_lock(&salaEncontrada->mutexUsuariosSala);
+  MiembroSala *actual, *tmp;
+  HASH_ITER(hh, salaEncontrada->tablaUsuariosSala, actual, tmp) {
+    cJSON_AddStringToObject(usuarios, actual->usuario->username, actual->usuario->estado);
+  } 
+  pthread_mutex_unlock(&salaEncontrada->mutexUsuariosSala);
+  cJSON_AddItemToObject(respuesta, "users", usuarios);
+  char *StringRespuesta= cJSON_PrintUnformatted(respuesta);
+  cJSON_Delete(respuesta);
+  agregarSaltoLinea(&StringRespuesta);
+  return StringRespuesta;
+}
+
+
 /* Funcion que agrega el salto de linea para enviar al cliente y el \0 para marcar el limite en C */
 void agregarSaltoLinea(char **mensaje){
   if(mensaje == NULL || *mensaje == NULL) return;

@@ -320,3 +320,60 @@ void TestInvitacionSalaUsuarioInexistente(){
   assert(1==numeroMensajes);
   assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"INVITE\",\"result\":\"NO_SUCH_USER\",\"extra\":\"gelen\"}\n")==0);
 }
+
+void TestIngresaSala(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion = true;
+  strcpy(buffer, "{\"type\":\"JOIN_ROOM\",\"roomname\":\"Sala 1\"}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  /* KENNYA INTENTA ACCEDE A SALA */
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
+  /* printf("%s\n",mensajes[0]); */
+  assert(1==numeroMensajes);
+  /* printf("%s\n",mensajes[0]); */
+  assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"JOIN_ROOM\",\"result\":\"SUCCESS\",\"extra\":\"Sala 1\"}\n")==0);
+}
+
+void TestIngresaInexistente(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion = true;
+  strcpy(buffer, "{\"type\":\"JOIN_ROOM\",\"roomname\":\"Sala inexistente\"}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  /* KENNYA INTENTA ACCEDE A SALA */
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
+  /* printf("%s\n",mensajes[0]); */
+  assert(1==numeroMensajes);
+  /* printf("%s\n",mensajes[0]); */
+  assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"JOIN_ROOM\",\"result\":\"NO_SUCH_ROOM\",\"extra\":\"Sala inexistente\"}\n")==0);
+}
+
+void TestIngresaSinInvitacion(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion = false;
+  strcpy(buffer, "{\"type\":\"IDENTIFY\",\"username\":\"metiche\"}\n{\"type\":\"JOIN_ROOM\",\"roomname\":\"Sala 1\"}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,25,&identificacion);
+  /* printf("%s\n",mensajes[0]); */
+  assert(2==numeroMensajes);
+  
+assert(strcmp(mensajes[1],"{\"type\":\"RESPONSE\",\"operation\":\"JOIN_ROOM\",\"result\":\"NOT_INVITED\",\"extra\":\"Sala 1\"}\n")==0);
+}
