@@ -18,5 +18,6 @@ void TestInvitacionSalaUsuarioInexistente();
 void TestIngresaSala();
 void TestIngresaInexistente();
 void TestIngresaSinInvitacion();
+void TestListaSala();
 #endif
 

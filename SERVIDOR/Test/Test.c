@@ -21,6 +21,7 @@ int main() {
   TestIngresaSala();
   TestIngresaInexistente();
   TestIngresaSinInvitacion();
+  TestListaSala();
   return 0;
 
   

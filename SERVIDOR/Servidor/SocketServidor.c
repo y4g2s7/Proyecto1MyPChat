@@ -120,20 +120,39 @@ void *atenderCliente(void *arg){
   }
  fin:
   printf("Cliente se desconectó.\n");
-  
-  /* Liberamos el descriptor que se le agino al cliente */
   close(clienteFd);
-  
-  /* Borramos al usuario de la lista */
-  Usuario *actual, *tmp;
-  HASH_ITER(hh, tablaUsuarios, actual, tmp) {
-    if(actual->socket_fd==clienteFd){
-      HASH_DEL(tablaUsuarios, actual);
-      free(actual->estado);
-      free(actual);
-      break;
+
+  char *usuarioPtr = getUsername(clienteFd);
+  /* eliminamos de la lista de usuarios y de los cuartos */
+  if(usuarioPtr != NULL){
+    char usuario[9];
+    strncpy(usuario, usuarioPtr, sizeof(usuario));
+    usuario[8] = '\0';
+
+    pthread_mutex_lock(&mutexUsuarios);
+    Usuario *encontrado = NULL;
+    HASH_FIND_STR(tablaUsuarios, usuario, encontrado);
+    if(encontrado != NULL){
+      HASH_DEL(tablaUsuarios, encontrado);
+      free(encontrado->estado);
+      free(encontrado);
     }
-  } 
+    pthread_mutex_unlock(&mutexUsuarios);
+
+    pthread_mutex_lock(&mutexSalas);
+    Sala *act, *tm;
+    HASH_ITER(hh, tablaSalas, act, tm) {
+      pthread_mutex_lock(&act->mutexUsuariosSala);
+      MiembroSala *encontrada = NULL;
+      HASH_FIND_STR(act->tablaUsuariosSala, usuario, encontrada);
+      if(encontrada != NULL){
+	HASH_DEL(act->tablaUsuariosSala, encontrada);
+	free(encontrada);
+      }
+      pthread_mutex_unlock(&act->mutexUsuariosSala);
+    }
+    pthread_mutex_unlock(&mutexSalas);
+  }
   return NULL;
 }
 

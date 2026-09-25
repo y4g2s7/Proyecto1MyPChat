@@ -3,6 +3,7 @@
 #include <cjson/cJSON.h>
 #include <stdbool.h>
 char *traduccionJSON(char *mensaje, int socket_fd, bool *identificacion);
+char *textoSala(cJSON *nombreSalaNodo, cJSON *texto,int socket_fd);
 char *ingresarSala(cJSON *nombreSalaNodo,int socket_fd);
 char *invitarSala(cJSON *nombreSalaNodo, cJSON *usuariosNodo,int socket_fd);
 char *sala(cJSON *nombreSalaNodo, int socket_fd);

@@ -377,3 +377,22 @@ void TestIngresaSinInvitacion(){
   
 assert(strcmp(mensajes[1],"{\"type\":\"RESPONSE\",\"operation\":\"JOIN_ROOM\",\"result\":\"NOT_INVITED\",\"extra\":\"Sala 1\"}\n")==0);
 }
+
+void TestListaSala(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion = true;
+  strcpy(buffer, "{\"type\":\"ROOM_USERS\",\"roomname\":\"Sala 1\"}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  /* KENNYA INTENTA ACCEDE A SALA */
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
+  /* printf("%s\n",mensajes[0]); */
+  assert(1==numeroMensajes);
+  assert(strcmp(mensajes[0],"{\"type\":\"ROOM_USER_LIST\",\"roomname\":\"Sala 1\",\"users\":{\"hanna\":\"ACTIVE\",\"kennya\":\"ACTIVE\"}}\n")==0);
+  
+}
