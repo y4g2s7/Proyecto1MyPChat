@@ -60,6 +60,8 @@ public class IndicacionesCliente{
 	    if(nombreSala == null || nombreSala.Length ==0) return null;
 	    return ConstruccionJson.construirJson("LEAVE_ROOM", null, null, null, nombreSala,null);
 	    
+	} else if(mensaje == "desconectarse"){
+	    return ConstruccionJson.construirJson("DISCONNECT", null, null, null, null,null);
 	}
 	return null;
     }

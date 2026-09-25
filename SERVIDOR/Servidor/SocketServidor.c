@@ -116,7 +116,7 @@ void *atenderCliente(void *arg){
 	goto fin;
       }
       
-    }  
+    }if(desconexion) goto fin;  
   }
  fin:
   printf("Cliente se desconectó.\n");
@@ -215,13 +215,6 @@ int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, cha
     /* Actualizamos incioMensaje */
     *inicioMensaje=mensajeFiltrado+1;
 
-    char buscar[] = "USER_ALREADY_EXISTS";
-
-    if((*identificacion == false) && (strstr(respuesta, buscar) == NULL)){
-      respuesta = crearJson("RESPONSE","INVALID","NOT_IDENTIFIED",NULL,NULL,NULL,NULL,NULL);
-      *desconexion = true;
-      if(respuesta==NULL) break;
-    }
     /* Si el cliente le manda algo al sevidor que no puede decifrar
        le decimos al usuario y volvemos a esperar respuesta*/
     if(respuesta == NULL){
@@ -229,7 +222,21 @@ int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, cha
       *desconexion = true;
       if(respuesta==NULL) break;
     }
+    
+    char buscar[] = "USER_ALREADY_EXISTS";
 
+    if((*identificacion == false) && (strstr(respuesta, buscar) == NULL)){
+      respuesta = crearJson("RESPONSE","INVALID","NOT_IDENTIFIED",NULL,NULL,NULL,NULL,NULL);
+      *desconexion = true;
+      if(respuesta==NULL) break;
+    }
+    
+    char *desconectar="desconecta";
+    if(strcmp(respuesta, desconectar) == 0){
+      *desconexion = true;
+      return contador;
+    }
+    
     /* Si es un mensaje  que no debemos regresar nada al usuario ignoramos */
     if(strcmp(respuesta,"ignora")!=0){
     /* Agregamos las respuestas a mensajes */

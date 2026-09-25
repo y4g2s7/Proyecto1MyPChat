@@ -105,12 +105,60 @@ char *traduccionJSON(char *mensaje, int socket_fd, bool *identificacion){
       goto cleanup;
     }
     respuesta = salirSala(nombreSalaNodo, socket_fd);
+  }  else if((strcmp(tipoTexto, "DISCONNECT")==0)){
+    respuesta = desconectarse(socket_fd);
   }
  cleanup:
   cJSON_Delete(raiz);
   return respuesta;
 }
 
+ char *desconectarse(int socket_fd){
+   char *prospecto=getUsername(socket_fd);
+   pthread_mutex_lock(&mutexSalas);
+
+   Sala *act, *tm;
+   HASH_ITER(hh, tablaSalas, act, tm) {
+   
+     pthread_mutex_lock(&act->mutexUsuariosSala);
+
+     MiembroSala *encontrada = NULL;
+     HASH_FIND_STR(act->tablaUsuariosSala, prospecto, encontrada);
+
+     if(encontrada != NULL){
+       char *nombre = act->nombre;
+       char *json = crearJson("LEFT_ROOM",NULL,NULL,NULL,prospecto,NULL,NULL,nombre);
+       MiembroSala *ACT, *TM;
+       HASH_ITER(hh, act->tablaUsuariosSala, ACT, TM) {
+	 if(ACT->usuario->socket_fd!=socket_fd){
+	   escribirCompleto(ACT->usuario->socket_fd, json, strlen(json));   
+	 }
+	
+       }
+       free(json);
+     }
+     pthread_mutex_unlock(&act->mutexUsuariosSala);
+ }
+ 
+ pthread_mutex_unlock(&mutexSalas);
+
+ pthread_mutex_lock(&mutexUsuarios);
+ char *aviso = crearJson("DISCONNECTED",NULL,NULL,NULL,prospecto,NULL,NULL,NULL);
+    Usuario *actual, *tmp;
+    HASH_ITER(hh, tablaUsuarios, actual, tmp) {
+      if(actual->socket_fd==socket_fd){
+	continue;
+      }
+      escribirCompleto(actual->socket_fd, aviso, strlen(aviso));
+      
+    }
+    free(aviso);
+ pthread_mutex_unlock(&mutexUsuarios);
+ 
+ char *respuesta = "desconecta";
+ return respuesta;
+}
+ 
  char *salirSala(cJSON *nombreSalaNodo,int socket_fd){
 
  char nombre[17];
