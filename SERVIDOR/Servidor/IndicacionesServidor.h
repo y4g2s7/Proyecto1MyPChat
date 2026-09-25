@@ -13,4 +13,5 @@ char *getUsername(int socket_fd);
 char *cambioEstado(cJSON *statusNodo, int socket_fd);
 char *Identificar(cJSON *usernameNodo, int socket_fd, bool *identificacion);
 char *listaEnSala(cJSON *nombreSalaNodo,int socket_fd);
+char *salirSala(cJSON *nombreSalaNodo,int socket_fd);
 #endif

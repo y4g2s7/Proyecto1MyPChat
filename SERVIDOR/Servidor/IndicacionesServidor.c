@@ -99,11 +99,77 @@ char *traduccionJSON(char *mensaje, int socket_fd, bool *identificacion){
       goto cleanup;
     }
     respuesta = textoSala(nombreSalaNodo,textoNodo, socket_fd);
+  } else if((strcmp(tipoTexto, "LEAVE_ROOM")==0)){
+    cJSON *nombreSalaNodo = cJSON_GetObjectItem(raiz, "roomname");
+    if(nombreSalaNodo==NULL || !cJSON_IsString(nombreSalaNodo)){
+      goto cleanup;
+    }
+    respuesta = salirSala(nombreSalaNodo, socket_fd);
   }
  cleanup:
   cJSON_Delete(raiz);
   return respuesta;
 }
+
+ char *salirSala(cJSON *nombreSalaNodo,int socket_fd){
+
+ char nombre[17];
+ strncpy(nombre,nombreSalaNodo->valuestring,17);
+   
+   if(nombre[0]=='\0'){
+     return NULL;
+   }
+   nombre[16]='\0';
+  
+  char *prospecto=getUsername(socket_fd);
+  pthread_mutex_lock(&mutexSalas);
+  Sala *salaEncontrada = NULL;
+  HASH_FIND_STR(tablaSalas, nombre, salaEncontrada);
+  char *respuesta;
+  if(salaEncontrada ==NULL){
+    respuesta = crearJson("RESPONSE", "LEAVE_ROOM", "NO_SUCH_ROOM",nombre,NULL,NULL,NULL,NULL);
+    
+  } else{
+    pthread_mutex_lock(&mutexUsuarios);
+    Usuario *UsuarioEncontrado = NULL;
+    HASH_FIND_STR(tablaUsuarios,prospecto,UsuarioEncontrado);
+    if(UsuarioEncontrado==NULL){
+      pthread_mutex_unlock(&mutexUsuarios);
+      pthread_mutex_unlock(&mutexSalas);
+      return NULL;
+    }
+    pthread_mutex_lock(&salaEncontrada->mutexUsuariosSala);
+    MiembroSala *msEncontrada = NULL;
+    HASH_FIND_STR(salaEncontrada->tablaUsuariosSala, prospecto, msEncontrada);
+    
+    
+    if(msEncontrada==NULL){
+
+      respuesta = crearJson("RESPONSE", "LEAVE_ROOM", "NOT_JOINED",nombre,NULL,NULL,NULL,NULL);
+    }else{
+
+      respuesta="ignora";
+      char *json = crearJson("LEFT_ROOM",NULL,NULL,NULL,prospecto,NULL,NULL,nombre);
+      MiembroSala *act, *tm;
+      HASH_ITER(hh, salaEncontrada->tablaUsuariosSala, act, tm) {
+	if(act->usuario->socket_fd!=socket_fd){
+	escribirCompleto(act->usuario->socket_fd, json, strlen(json));   
+	}
+	
+      }
+      free(json);
+
+      HASH_DEL(salaEncontrada->tablaUsuariosSala, msEncontrada);
+      free(msEncontrada);
+      
+    }
+    pthread_mutex_unlock(&salaEncontrada->mutexUsuariosSala);
+    pthread_mutex_unlock(&mutexUsuarios);
+  }
+  pthread_mutex_unlock(&mutexSalas);
+  return respuesta;
+  
+						     }
 
  char *textoSala(cJSON *nombreSalaNodo, cJSON *texto,int socket_fd){
    char nombre[17];
@@ -326,7 +392,11 @@ char *traduccionJSON(char *mensaje, int socket_fd, bool *identificacion){
       pthread_mutex_lock(&salaEncontrada->mutexUsuariosSala);
       Invitacion *invEncontrada = NULL;
       HASH_FIND_STR(salaEncontrada->tablaInvitados,elemento2->valuestring,invEncontrada);
-      if(invEncontrada == NULL){
+
+      MiembroSala *mbEncontrado = NULL;
+      HASH_FIND_STR(salaEncontrada->tablaUsuariosSala,elemento2->valuestring,mbEncontrado);
+
+      if((invEncontrada == NULL) && (mbEncontrado == NULL)){
 	Invitacion *inv = malloc(sizeof(Invitacion));
 	strncpy(inv->username, elemento2->valuestring, sizeof(inv->username));
 	inv->username[8] = '\0';

@@ -149,7 +149,20 @@ void *atenderCliente(void *arg){
 	HASH_DEL(act->tablaUsuariosSala, encontrada);
 	free(encontrada);
       }
+
+      Invitacion *encon =NULL;
+      HASH_FIND_STR(act->tablaInvitados, usuario, encon);
+      if(encon != NULL){
+	HASH_DEL(act->tablaInvitados, encon);
+	free(encon);
+      }
+      bool salaVacia = (act->tablaUsuariosSala == NULL);
       pthread_mutex_unlock(&act->mutexUsuariosSala);
+      if(salaVacia){
+        pthread_mutex_destroy(&act->mutexUsuariosSala);
+        HASH_DEL(tablaSalas, act);
+        free(act);
+      }
     }
     pthread_mutex_unlock(&mutexSalas);
   }

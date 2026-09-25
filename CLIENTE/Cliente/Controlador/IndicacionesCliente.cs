@@ -24,7 +24,7 @@ public class IndicacionesCliente{
 	    string? text = VistaConsola.leerMensaje();
 	    if(text == null || text.Length ==0)return null;
 	    return ConstruccionJson.construirJson("PUBLIC_TEXT",null,text,null,null,null);
-	} else if(mensaje== "nueva sala"){
+	} else if(mensaje== "crear sala"){
 	    string? nombreSala = VistaConsola.leerSala();
 	    if(nombreSala == null || nombreSala.Length ==0)return null;
 	    return ConstruccionJson.construirJson("NEW_ROOM",null,null,null,nombreSala,null);
@@ -37,9 +37,9 @@ public class IndicacionesCliente{
 	    
 	    string? username = VistaConsola.leerUsuarioInvitacion();
 	    if(username == null || username.Length ==0) return null;
-	    List<string> usernames = username.Split(',').Select(u => u.Trim()).ToList();
+	    List<string> usernames = username.Split(',').ToList();
 	    return ConstruccionJson.construirJson("INVITE",null,null,null,nombreSala,usernames);
-	} else if(mensaje == "ingresa sala"){
+	} else if(mensaje == "ingresar sala"){
 	    string? nombreSala = VistaConsola.leerSalaUnirse();
 	    if(nombreSala == null || nombreSala.Length ==0)return null;
 	    return ConstruccionJson.construirJson("JOIN_ROOM",null,null,null,nombreSala,null);
@@ -54,6 +54,11 @@ public class IndicacionesCliente{
 	    string? text = VistaConsola.leerMensaje();
 	    if(text == null || text.Length ==0)return null;
 	    return ConstruccionJson.construirJson("ROOM_TEXT", null, text, null, nombreSala,null);
+	    
+	} else if(mensaje == "salir sala"){
+	    string? nombreSala = VistaConsola.leerSala();
+	    if(nombreSala == null || nombreSala.Length ==0) return null;
+	    return ConstruccionJson.construirJson("LEAVE_ROOM", null, null, null, nombreSala,null);
 	    
 	}
 	return null;
