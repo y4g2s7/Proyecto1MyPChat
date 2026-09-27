@@ -28,9 +28,13 @@ public class VistaConsola{
     public static String? leerPeticion(){
 	return Console.ReadLine();
     }
-
+    
+    public static String? leerCambioEstatus(){
+	Console.WriteLine("Escribe el estatus al que te quieres cambiar: AWAY o BUSY o ACTIVE");
+	return Console.ReadLine();
+    }
+    
     public static String? leerUsuario(){
-	
 	Console.WriteLine("Escribe a quien le quieres mandar el mensaje");
 	return Console.ReadLine();
     }

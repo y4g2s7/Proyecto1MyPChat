@@ -543,7 +543,7 @@ char *mensajePublico(cJSON *mensajePublicoNodo, int socket_fd){
     return NULL;
   }
   char* remitente = getUsername(socket_fd);
-  char *json = crearJson("PUBLIC_TEXT",NULL,NULL,NULL,remitente,NULL,mensaje,NULL);
+  char *json = crearJson("PUBLIC_TEXT_FROM",NULL,NULL,NULL,remitente,NULL,mensaje,NULL);
   pthread_mutex_lock(&mutexUsuarios);
   Usuario *act, *tm;
     HASH_ITER(hh, tablaUsuarios, act, tm) {

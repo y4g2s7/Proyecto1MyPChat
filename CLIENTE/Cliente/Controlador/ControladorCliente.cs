@@ -45,6 +45,7 @@ public class ControladorCliente{
 	//Le pedimos al Modelo que se conecte
 	if(SocketCliente.conectar(ip,puerto)){
 	    VistaConsola.mostrarMensaje("Te haz conectado al servidor");
+	    VistaConsola.mostrarMensaje(IndicacionesCliente.help());
 	} else{
 	    //Si falla la conexion avisamos al usuario
 	    VistaConsola.mostrarMensaje("ERROR no se pudo conectar al sevidor");
@@ -71,7 +72,7 @@ public class ControladorCliente{
     // Se ejecuta (en el hilo de escucha) cada vez que el Modelo avisa de un mensaje completo
     static void fRespuesta(string texto){
 	// Le pedimos a la Vista que escriba lo que el servidor nos dijo
-	VistaConsola.mostrarMensaje("El servidor respondio: "+texto);
+	VistaConsola.mostrarMensaje("<<"+LecturaJson.traduccion(texto));
 
 	// Parseamos lo que nos dice el servidor
 	JsonNode? respuesta= JsonNode.Parse(texto);
@@ -133,19 +134,15 @@ public class ControladorCliente{
 		VistaConsola.mostrarMensaje("Error tienes que escribir algo");
 		continue;
 	    }
+	    if(peticion == "-h"){
+		VistaConsola.mostrarMensaje(IndicacionesCliente.help());
+		continue;
+	    }
 	    //Lo traducimos para que el servidor lo entienda
 	    String? solicitud = IndicacionesCliente.indicacionesC(peticion);
 	    
 	    //Si lo podemos entender continuamos
-	    if(solicitud!=null){
-
-		//Si el usuario quiere salir nos desconectamos
-		if(solicitud == "exit\n"){
-		    VistaConsola.mostrarMensaje("Cerrando Socket");
-		    SocketCliente.cerrar();
-		    return;
-		}
-	    } else{
+	    if(solicitud==null){
 		//Al no reconocer lo que dice pide el usuario mandamos un mensaje invalido al servidor
 		solicitud = "Mensaje invalido\n";
 	    }
