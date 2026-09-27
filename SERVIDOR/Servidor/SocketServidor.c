@@ -33,14 +33,14 @@ void runServidor() {
   direccion.sin_addr.s_addr = INADDR_ANY;
   
   /* Le damos un puerto */
-  direccion.sin_port = htons(9000);
+  direccion.sin_port = htons(1234);
 
   bind(servidorFd, (struct sockaddr *)&direccion, sizeof(direccion));
 
   /* Abrimos el servidor para que los clientes se puedan conectar */
-  listen(servidorFd, 1);
+  listen(servidorFd, SOMAXCONN);
   
-  printf("Escuchando en puerto 9000...\n");
+  printf("Escuchando en puerto 1234..\n");
 
   /* Ciclo infinito para la conexion de usuarios */
   while(1){
@@ -116,24 +116,65 @@ void *atenderCliente(void *arg){
 	goto fin;
       }
       
-    }  
+    }if(desconexion) goto fin;  
   }
  fin:
   printf("Cliente se desconectó.\n");
-  
-  /* Liberamos el descriptor que se le agino al cliente */
   close(clienteFd);
-  
-  /* Borramos al usuario de la lista */
-  Usuario *actual, *tmp;
-  HASH_ITER(hh, tablaUsuarios, actual, tmp) {
-    if(actual->socket_fd==clienteFd){
-      HASH_DEL(tablaUsuarios, actual);
-      free(actual->estado);
-      free(actual);
-      break;
+
+  char *usuarioPtr = getUsername(clienteFd);
+  /* eliminamos de la lista de usuarios y de los cuartos */
+  if(usuarioPtr != NULL){
+    char usuario[9];
+    strncpy(usuario, usuarioPtr, sizeof(usuario));
+    usuario[8] = '\0';
+
+    pthread_mutex_lock(&mutexUsuarios);
+    Usuario *encontrado = NULL;
+    HASH_FIND_STR(tablaUsuarios, usuario, encontrado);
+    if(encontrado != NULL){
+      HASH_DEL(tablaUsuarios, encontrado);
+      free(encontrado->estado);
+      free(encontrado);
     }
-  } 
+    pthread_mutex_unlock(&mutexUsuarios);
+
+    pthread_mutex_lock(&mutexSalas);
+    Sala *act, *tm;
+    HASH_ITER(hh, tablaSalas, act, tm) {
+      pthread_mutex_lock(&act->mutexUsuariosSala);
+      MiembroSala *encontrada = NULL;
+      HASH_FIND_STR(act->tablaUsuariosSala, usuario, encontrada);
+      if(encontrada != NULL){
+	HASH_DEL(act->tablaUsuariosSala, encontrada);
+	free(encontrada);
+      }
+
+      Invitacion *encon =NULL;
+      HASH_FIND_STR(act->tablaInvitados, usuario, encon);
+      if(encon != NULL){
+	HASH_DEL(act->tablaInvitados, encon);
+	free(encon);
+      }
+      bool salaVacia = (act->tablaUsuariosSala == NULL);
+      pthread_mutex_unlock(&act->mutexUsuariosSala);
+      
+      if(salaVacia){
+        pthread_mutex_destroy(&act->mutexUsuariosSala);
+
+	/* Liberamos las invitaciones pendientes antes de liberar la sala */
+	Invitacion *invActual, *invTmp;
+	HASH_ITER(hh, act->tablaInvitados, invActual, invTmp) {
+	  HASH_DEL(act->tablaInvitados, invActual);
+	  free(invActual);
+	}
+
+	HASH_DEL(tablaSalas, act);
+        free(act);
+      }
+    }
+    pthread_mutex_unlock(&mutexSalas);
+  }
   return NULL;
 }
 
@@ -183,21 +224,28 @@ int procesarBuffer(char *buffer, int *bytesAcumulados, char **inicioMensaje, cha
     /* Actualizamos incioMensaje */
     *inicioMensaje=mensajeFiltrado+1;
 
-    char buscar[] = "USER_ALREADY_EXISTS";
-
-    if((*identificacion == false) && (strstr(respuesta, buscar) == NULL)){
-      respuesta = crearJson("RESPONSE","INVALID","NOT_IDENTIFIED",NULL,NULL,NULL,NULL);
-      *desconexion = true;
-      if(respuesta==NULL) break;
-    }
     /* Si el cliente le manda algo al sevidor que no puede decifrar
        le decimos al usuario y volvemos a esperar respuesta*/
     if(respuesta == NULL){
-      respuesta = crearJson("RESPONSE","INVALID","INVALID",NULL,NULL,NULL,NULL);
+      respuesta = crearJson("RESPONSE","INVALID","INVALID",NULL,NULL,NULL,NULL,NULL);
       *desconexion = true;
       if(respuesta==NULL) break;
     }
+    
+    char buscar[] = "USER_ALREADY_EXISTS";
 
+    if((*identificacion == false) && (strstr(respuesta, buscar) == NULL)){
+      respuesta = crearJson("RESPONSE","INVALID","NOT_IDENTIFIED",NULL,NULL,NULL,NULL,NULL);
+      *desconexion = true;
+      if(respuesta==NULL) break;
+    }
+    
+    char *desconectar="desconecta";
+    if(strcmp(respuesta, desconectar) == 0){
+      *desconexion = true;
+      return contador;
+    }
+    
     /* Si es un mensaje  que no debemos regresar nada al usuario ignoramos */
     if(strcmp(respuesta,"ignora")!=0){
     /* Agregamos las respuestas a mensajes */

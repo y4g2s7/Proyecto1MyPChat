@@ -10,4 +10,23 @@ void TestCambioEstatusNoAceptable();
 void TestCambioEstatusRepetido();
 void TestMensajePrivado();
 void TestMensajeUsuarioNoEncontrado();
+void TestCreacionSala();
+void TestSalaRepetida();
+void TestInvitacionSala();
+void TestInvitacionSalaInexistente();
+void TestInvitacionSalaUsuarioInexistente();
+void TestIngresaSala();
+void TestIngresaInexistente();
+void TestIngresaSinInvitacion();
+void TestListaSala();
+void TestMensajeSala();
+void TestMensajeSalaInexistente();
+void TestMensajeSalaNoUsuario();
+void TestSalirSala();
+void TestSalirSalaInexistente();
+void TestSalirSalaSinEstar();
+void TestSalaEliminada();
+void TestSalaNoEliminada();
+void TestDesconectar();
 #endif
+

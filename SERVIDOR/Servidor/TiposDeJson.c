@@ -3,7 +3,7 @@
 #include "TiposDeJson.h"
 #include <cjson/cJSON.h>
 
-char *crearJson(char *type, char *operation, char *result, char * extra, char * username, char *status, char *text){
+char *crearJson(char *type, char *operation, char *result, char * extra, char * username, char *status, char *text, char *roomname){
   cJSON *respuesta = cJSON_CreateObject();
   
   if(type) cJSON_AddStringToObject(respuesta, "type", type);
@@ -13,6 +13,7 @@ char *crearJson(char *type, char *operation, char *result, char * extra, char * 
   if(username) cJSON_AddStringToObject(respuesta, "username", username);
   if(status) cJSON_AddStringToObject(respuesta, "status", status);
   if(text) cJSON_AddStringToObject(respuesta, "text", text);
+  if(roomname) cJSON_AddStringToObject(respuesta, "roomname", roomname);
   
   char *StringRespuesta= cJSON_PrintUnformatted(respuesta);
   cJSON_Delete(respuesta);
@@ -31,6 +32,27 @@ char *stringListaUsuario(){
     cJSON_AddStringToObject(usuarios, actual->username, actual->estado);
   } 
   pthread_mutex_unlock(&mutexUsuarios);
+  cJSON_AddItemToObject(respuesta, "users", usuarios);
+  char *StringRespuesta= cJSON_PrintUnformatted(respuesta);
+  cJSON_Delete(respuesta);
+  agregarSaltoLinea(&StringRespuesta);
+  return StringRespuesta;
+}
+
+
+char *stringListaUsuarioSala(Sala *salaEncontrada){
+  cJSON *respuesta = cJSON_CreateObject();
+  cJSON *usuarios = cJSON_CreateObject();
+
+  cJSON_AddStringToObject(respuesta, "type", "ROOM_USER_LIST");
+  cJSON_AddStringToObject(respuesta, "roomname", salaEncontrada->nombre);
+  
+  pthread_mutex_lock(&salaEncontrada->mutexUsuariosSala);
+  MiembroSala *actual, *tmp;
+  HASH_ITER(hh, salaEncontrada->tablaUsuariosSala, actual, tmp) {
+    cJSON_AddStringToObject(usuarios, actual->usuario->username, actual->usuario->estado);
+  } 
+  pthread_mutex_unlock(&salaEncontrada->mutexUsuariosSala);
   cJSON_AddItemToObject(respuesta, "users", usuarios);
   char *StringRespuesta= cJSON_PrintUnformatted(respuesta);
   cJSON_Delete(respuesta);

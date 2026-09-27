@@ -13,6 +13,24 @@ int main() {
   TestCambioEstatusRepetido();
   TestMensajePrivado();
   TestMensajeUsuarioNoEncontrado();
-  return 0;
+  TestCreacionSala();
+  TestSalaRepetida();
+  TestInvitacionSala();
+  TestInvitacionSalaInexistente();
+  TestInvitacionSalaUsuarioInexistente();
+  TestIngresaSala();
+  TestIngresaInexistente();
+  TestIngresaSinInvitacion();
+  TestListaSala();
+  TestMensajeSala();
+  TestMensajeSalaInexistente();
+  TestMensajeSalaNoUsuario();
+  TestSalirSala();
+  TestSalirSalaInexistente();
+  TestSalirSalaSinEstar();
+  TestSalaEliminada();
+  TestSalaNoEliminada();
+  TestDesconectar();
+  return 0;  
 }
 
