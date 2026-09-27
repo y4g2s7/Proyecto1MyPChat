@@ -194,6 +194,7 @@ char *traduccionJSON(char *mensaje, int socket_fd, bool *identificacion){
     if(msEncontrada==NULL){
 
       respuesta = crearJson("RESPONSE", "LEAVE_ROOM", "NOT_JOINED",nombre,NULL,NULL,NULL,NULL);
+      pthread_mutex_unlock(&salaEncontrada->mutexUsuariosSala);
     }else{
 
       respuesta="ignora";
@@ -210,8 +211,25 @@ char *traduccionJSON(char *mensaje, int socket_fd, bool *identificacion){
       HASH_DEL(salaEncontrada->tablaUsuariosSala, msEncontrada);
       free(msEncontrada);
       
+      bool salaVacia = (salaEncontrada->tablaUsuariosSala == NULL);
+
+      pthread_mutex_unlock(&salaEncontrada->mutexUsuariosSala);
+
+      if(salaVacia){
+        pthread_mutex_destroy(&salaEncontrada->mutexUsuariosSala);
+
+	/* Liberamos las invitaciones pendientes antes de liberar la sala */
+	Invitacion *invActual, *invTmp;
+	HASH_ITER(hh, salaEncontrada->tablaInvitados, invActual, invTmp) {
+	  HASH_DEL(salaEncontrada->tablaInvitados, invActual);
+	  free(invActual);
+	}
+ 
+        HASH_DEL(tablaSalas, salaEncontrada);
+        free(salaEncontrada);
+      }
     }
-    pthread_mutex_unlock(&salaEncontrada->mutexUsuariosSala);
+    
     pthread_mutex_unlock(&mutexUsuarios);
   }
   pthread_mutex_unlock(&mutexSalas);
@@ -670,7 +688,6 @@ char *Identificar(cJSON *usernameNodo,int socket_fd, bool *identificacion){
     /* Verificacion de memoria */
     if(nuevo == NULL){
       pthread_mutex_unlock(&mutexUsuarios);
-      /* free(identify); */
       return NULL;
     }
     /* Actualizamos que ya hubo una identificacion correcta  */
@@ -696,7 +713,7 @@ char *Identificar(cJSON *usernameNodo,int socket_fd, bool *identificacion){
     respuesta=crearJson("RESPONSE","IDENTIFY","USER_ALREADY_EXISTS",user,NULL, NULL,NULL,NULL);
   }
   pthread_mutex_unlock(&mutexUsuarios);
-  /* free(identify); */
+ 
   return respuesta;
   
 }

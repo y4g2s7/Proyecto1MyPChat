@@ -19,5 +19,14 @@ void TestIngresaSala();
 void TestIngresaInexistente();
 void TestIngresaSinInvitacion();
 void TestListaSala();
+void TestMensajeSala();
+void TestMensajeSalaInexistente();
+void TestMensajeSalaNoUsuario();
+void TestSalirSala();
+void TestSalirSalaInexistente();
+void TestSalirSalaSinEstar();
+void TestSalaEliminada();
+void TestSalaNoEliminada();
+void TestDesconectar();
 #endif
 

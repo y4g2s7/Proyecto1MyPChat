@@ -389,10 +389,196 @@ void TestListaSala(){
   
   int bytesAcumulados=strlen(buffer);
   bool desconexion = false;
-  /* KENNYA INTENTA ACCEDE A SALA */
   int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
   /* printf("%s\n",mensajes[0]); */
   assert(1==numeroMensajes);
   assert(strcmp(mensajes[0],"{\"type\":\"ROOM_USER_LIST\",\"roomname\":\"Sala 1\",\"users\":{\"hanna\":\"ACTIVE\",\"kennya\":\"ACTIVE\"}}\n")==0);
+  
+}
+
+void TestMensajeSala(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion = true;
+  strcpy(buffer, "{\"type\":\"ROOM_TEXT\",\"roomname\":\"Sala 1\",\"text\":\"hola\"}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
+  /* printf("%s\n",mensajes[0]); */
+  assert(0==numeroMensajes);
+}
+
+void TestMensajeSalaInexistente(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion = true;
+  strcpy(buffer, "{\"type\":\"ROOM_TEXT\",\"roomname\":\"Sala inexistente\",\"text\":\"hola\"}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
+  /* printf("%s\n",mensajes[0]); */
+  assert(1==numeroMensajes);
+  assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"ROOM_TEXT\",\"result\":\"NO_SUCH_ROOM\",\"extra\":\"Sala inexistente\"}\n")==0);
+}
+
+void TestMensajeSalaNoUsuario(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion = true;
+  strcpy(buffer, "{\"type\":\"ROOM_TEXT\",\"roomname\":\"Sala 1\",\"text\":\"hola\"}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,25,&identificacion);
+  /* printf("%s\n",mensajes[0]); */
+  assert(1==numeroMensajes);
+  assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"ROOM_TEXT\",\"result\":\"NOT_JOINED\",\"extra\":\"Sala 1\"}\n")==0);
+}
+
+void TestSalirSala(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion = true;
+  strcpy(buffer, "{\"type\":\"LEAVE_ROOM\",\"roomname\":\"Sala 1\"}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
+  assert(0==numeroMensajes);
+}
+
+void TestSalirSalaInexistente(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion = true;
+  strcpy(buffer, "{\"type\":\"LEAVE_ROOM\",\"roomname\":\"Sala inexistente\"}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
+  assert(1==numeroMensajes);
+   assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"LEAVE_ROOM\",\"result\":\"NO_SUCH_ROOM\",\"extra\":\"Sala inexistente\"}\n")==0);
+}
+
+void TestSalirSalaSinEstar(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion = true;
+  strcpy(buffer, "{\"type\":\"LEAVE_ROOM\",\"roomname\":\"Sala 1\"}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,16,&identificacion);
+  assert(1==numeroMensajes);
+   assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"LEAVE_ROOM\",\"result\":\"NOT_JOINED\",\"extra\":\"Sala 1\"}\n")==0);
+}
+
+void TestSalaEliminada(){
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion =false;
+  /* nos identificamos,creamos sala, salimos, intentamos volver a crear sala con ese mismo nombre, nos debe dejar pues la sala se borra */
+  strcpy(buffer, "{\"type\":\"IDENTIFY\",\"username\":\"luis\"}\n{\"type\":\"NEW_ROOM\",\"roomname\":\"Sala 2\"}\n{\"type\":\"LEAVE_ROOM\",\"roomname\":\"Sala 2\"}\n{\"type\":\"NEW_ROOM\",\"roomname\":\"Sala 2\"}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,30,&identificacion);
+  assert(3==numeroMensajes);
+  assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\"luis\"}\n")==0); 
+  assert(strcmp(mensajes[1],"{\"type\":\"RESPONSE\",\"operation\":\"NEW_ROOM\",\"result\":\"SUCCESS\",\"extra\":\"Sala 2\"}\n")==0);
+  assert(strcmp(mensajes[1],"{\"type\":\"RESPONSE\",\"operation\":\"NEW_ROOM\",\"result\":\"SUCCESS\",\"extra\":\"Sala 2\"}\n")==0);
+  
+}
+
+void TestSalaNoEliminada(){
+
+  /* Hacemos las variables para poder llamar a procesarBuffer() que es la encargada de */
+  /* separar los mensajes */
+  char buffer1[1000]={0};
+  char *inicioMensaje1=buffer1;
+  char *mensajes1[50];
+  bool identificacion1 =false;
+  /* Creamos un usuario y nos identificamos */
+  strcpy(buffer1, "{\"type\":\"IDENTIFY\",\"username\":\"juan\"}\n");
+  
+  int bytesAcumulados1=strlen(buffer1);
+  bool desconexion1 = false;
+  int numeroMensajes1 = procesarBuffer(buffer1,&bytesAcumulados1,&inicioMensaje1,mensajes1,&desconexion1,41,&identificacion1);
+  assert(1==numeroMensajes1);
+  assert(strcmp(mensajes1[0],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\"juan\"}\n")==0);
+  
+  /* mas variables*/
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion =false;
+
+  /* Creamos otro usuario, nos identificamos, creamos una sala, invatamos al primer usuario */
+  strcpy(buffer, "{\"type\":\"IDENTIFY\",\"username\":\"bruno\"}\n{\"type\":\"NEW_ROOM\",\"roomname\":\"Sala 3\"}\n{\"type\":\"INVITE\",\"roomname\":\"Sala 3\",\"usernames\":[\"juan\"]}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,40,&identificacion);
+  assert(2==numeroMensajes);
+  assert(strcmp(mensajes[0],"{\"type\":\"RESPONSE\",\"operation\":\"IDENTIFY\",\"result\":\"SUCCESS\",\"extra\":\"bruno\"}\n")==0); 
+  assert(strcmp(mensajes[1],"{\"type\":\"RESPONSE\",\"operation\":\"NEW_ROOM\",\"result\":\"SUCCESS\",\"extra\":\"Sala 3\"}\n")==0);
+
+  /* mas variables*/
+  char buffer3[1000]={0};
+  char *inicioMensaje3=buffer3;
+  char *mensajes3[50];
+  bool identificacion3 =true;
+
+  /* Con el primer usuario nos metemos a la sala, salimos e intantamos crear una sala con el mismo nombre,
+     no debemos poder pues la sala no se ha borrado porque el segundo ususario aun esta ahi */
+  strcpy(buffer3, "{\"type\":\"JOIN_ROOM\",\"roomname\":\"Sala 3\"}\n{\"type\":\"LEAVE_ROOM\",\"roomname\":\"Sala 3\"}\n{\"type\":\"NEW_ROOM\",\"roomname\":\"Sala 3\"}\n");
+  
+  int bytesAcumulados3=strlen(buffer3);
+  bool desconexion3 = false;
+  int numeroMensajes3 = procesarBuffer(buffer3,&bytesAcumulados3,&inicioMensaje3,mensajes3,&desconexion3,41,&identificacion3);
+  assert(2==numeroMensajes3);
+  assert(strcmp(mensajes3[0],"{\"type\":\"RESPONSE\",\"operation\":\"JOIN_ROOM\",\"result\":\"SUCCESS\",\"extra\":\"Sala 3\"}\n")==0);
+  assert(strcmp(mensajes3[1],"{\"type\":\"RESPONSE\",\"operation\":\"NEW_ROOM\",\"result\":\"ROOM_ALREADY_EXISTS\",\"extra\":\"Sala 3\"}\n")==0);
+  
+}
+
+
+void TestDesconectar(){
+  /* mas variables*/
+  char buffer[1000]={0};
+  char *inicioMensaje=buffer;
+  char *mensajes[50];
+  bool identificacion = true;
+
+  /* Nos desconectamos con el usuario juan */
+  strcpy(buffer, "{\"type\":\"DISCONNECT\"}\n");
+  
+  int bytesAcumulados=strlen(buffer);
+  bool desconexion = false;
+  int numeroMensajes = procesarBuffer(buffer,&bytesAcumulados,&inicioMensaje,mensajes,&desconexion,40,&identificacion);
+  assert(0==numeroMensajes); 
   
 }

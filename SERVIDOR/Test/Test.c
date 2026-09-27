@@ -22,8 +22,15 @@ int main() {
   TestIngresaInexistente();
   TestIngresaSinInvitacion();
   TestListaSala();
-  return 0;
-
-  
+  TestMensajeSala();
+  TestMensajeSalaInexistente();
+  TestMensajeSalaNoUsuario();
+  TestSalirSala();
+  TestSalirSalaInexistente();
+  TestSalirSalaSinEstar();
+  TestSalaEliminada();
+  TestSalaNoEliminada();
+  TestDesconectar();
+  return 0;  
 }
 

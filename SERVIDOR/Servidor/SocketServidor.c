@@ -33,14 +33,14 @@ void runServidor() {
   direccion.sin_addr.s_addr = INADDR_ANY;
   
   /* Le damos un puerto */
-  direccion.sin_port = htons(9000);
+  direccion.sin_port = htons(1234);
 
   bind(servidorFd, (struct sockaddr *)&direccion, sizeof(direccion));
 
   /* Abrimos el servidor para que los clientes se puedan conectar */
-  listen(servidorFd, 1);
+  listen(servidorFd, SOMAXCONN);
   
-  printf("Escuchando en puerto 9000...\n");
+  printf("Escuchando en puerto 1234..\n");
 
   /* Ciclo infinito para la conexion de usuarios */
   while(1){
@@ -158,9 +158,18 @@ void *atenderCliente(void *arg){
       }
       bool salaVacia = (act->tablaUsuariosSala == NULL);
       pthread_mutex_unlock(&act->mutexUsuariosSala);
+      
       if(salaVacia){
         pthread_mutex_destroy(&act->mutexUsuariosSala);
-        HASH_DEL(tablaSalas, act);
+
+	/* Liberamos las invitaciones pendientes antes de liberar la sala */
+	Invitacion *invActual, *invTmp;
+	HASH_ITER(hh, act->tablaInvitados, invActual, invTmp) {
+	  HASH_DEL(act->tablaInvitados, invActual);
+	  free(invActual);
+	}
+
+	HASH_DEL(tablaSalas, act);
         free(act);
       }
     }
