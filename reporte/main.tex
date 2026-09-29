@@ -197,6 +197,31 @@ ciegas, el cual dividía el problema en los siguientes subproblemas.
     aparece el delimitador.
 \end{itemize}
 
+La Figura~\ref{fig:secuencia-identify} muestra el flujo completo de un mensaje
+\texttt{IDENTIFY}, desde que llega al servidor hasta que se envía la
+respuesta. El servidor recibe los bytes crudos del socket y los acumula en un
+búfer hasta encontrar el delimitador \texttt{\textbackslash n}, momento en el
+que extrae un mensaje completo. Ese mensaje se le pasa a
+\texttt{TraduccionJson}, que usa la librería \texttt{cJSON} para parsear el
+texto y obtener tanto el tipo de mensaje como sus campos —en este caso, el
+\texttt{username} enviado por el cliente—, y regresa esos datos ya listos al
+servidor. Con el tipo de mensaje identificado como \texttt{IDENTIFY}, el
+servidor llama a \texttt{Identificar}, que bloquea el mutex de la tabla de
+usuarios antes de consultarla, garantizando que ningún otro hilo pueda
+modificarla al mismo tiempo. Si el nombre de usuario no existe, se agrega a la
+tabla y se construye la respuesta de éxito; si ya está en uso, se construye
+directamente la respuesta de rechazo. En ambos casos la construcción de la
+respuesta ocurre todavía dentro de la sección protegida, y es hasta entonces
+que se libera el mutex, antes de que el servidor envíe la respuesta al
+cliente, esa es la logica principal de SERVIDOR, lo unico que varia es la interpretacion del JSON.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{secuencia_identify..png}
+    \caption{Diagrama de secuencia del flujo IDENTIFY.}
+    \label{fig:secuencia-identify}
+\end{figure}
+
 \subsubsection{Cronología}
 Lo primero que hice fue compilar y ejecutar un \texttt{main} en C usando Meson
 build; repito, no sabía nada de C, así que este fue el paso 0. Después
@@ -329,29 +354,6 @@ Crear MiembroSala con su estructura\newline
     el controlador usa tanto para mostrar la traducción del mensaje como para
     detectar casos especiales (identificación exitosa, mensaje no entendido), ademas de enviarselo a la Vista, para que el usuario los vea.
 \end{itemize}
-La Figura~\ref{fig:secuencia-identify} muestra el flujo completo de un mensaje
-\texttt{IDENTIFY}, desde que llega al servidor hasta que se envía la
-respuesta. El servidor recibe los bytes crudos del socket y los acumula en un
-búfer hasta encontrar el delimitador \texttt{\textbackslash n}, momento en el
-que extrae un mensaje completo. Ese mensaje se le pasa a
-\texttt{TraduccionJson}, que usa la librería \texttt{cJSON} para parsear el
-texto y obtener tanto el tipo de mensaje como sus campos —en este caso, el
-\texttt{username} enviado por el cliente—, y regresa esos datos ya listos al
-servidor. Con el tipo de mensaje identificado como \texttt{IDENTIFY}, el
-servidor llama a \texttt{Identificar}, que bloquea el mutex de la tabla de
-usuarios antes de consultarla, garantizando que ningún otro hilo pueda
-modificarla al mismo tiempo. Si el nombre de usuario no existe, se agrega a la
-tabla y se construye la respuesta de éxito; si ya está en uso, se construye
-directamente la respuesta de rechazo. En ambos casos la construcción de la
-respuesta ocurre todavía dentro de la sección protegida, y es hasta entonces
-que se libera el mutex, antes de que el servidor envíe la respuesta al
-cliente, esa es la logica principal de SERVIDOR, lo unico que varia es la interpretacion del JSON.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=1\textwidth]{secuencia_identify..png}
-    \caption{Diagrama de secuencia del flujo IDENTIFY.}
-    \label{fig:secuencia-identify}
-\end{figure}
 
 \subsubsection{Cronología}
 Lo primero que hice fue lograr la conexión al servidor, para después hacer que
